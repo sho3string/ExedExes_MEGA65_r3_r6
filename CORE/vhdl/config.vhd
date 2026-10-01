@@ -76,26 +76,21 @@ type WHS_RECORD_ARRAY_TYPE is array (0 to WHS_RECORDS - 1) of WHS_RECORD_TYPE;
 
 constant SCR_WELCOME : string :=
 
-   "Name of the Demo Core Version 1.0\n" &
-   "MiSTer port done by Demo Author in 2022\n\n" &
+   "ExedExes V0.5.0\n" &
+   "---------------\n" &   
+   "\n" &
+   "MiSTer port by Muse in 2024-26\n\n" &
 
    -- We are not insisting. But it would be nice if you gave us credit for MiSTer2MEGA65 by leaving these lines in
-   "Powered by MiSTer2MEGA65 Version [WIP],\n" &
-   "done by sy2002 and MJoergen in 2022\n" &
-
-   "\n\nEdit config.vhd to modify welcome screen.\n\n" &
-   "You can for example show the keyboard map.\n" &
-   "Look at this example for the Demo core:\n\n\n" &
-
-   "    Key                Demo core\n" &
-   "    " & CHR_LINE_10 & CHR_LINE_10 & CHR_LINE_10 & CHR_LINE_1 & CHR_LINE_1 & "\n" &
-   "    Left Cursor        Paddle left\n" &
-   "    Right Cursor       Paddle right\n" &
-   "    Space              Start game\n" &
-   "    Help               Options menu\n\n\n" &
-
-   "\n\n    Press Space to continue.\n\n\n";
-
+   "MiSTer2MEGA65 Ver 2.0.1\n"     &
+   "By sy2002 and MJoergen\n"     &
+   "\n\n"                                 &
+   "Credits  : Press '5' or '6'\n"        &
+   "Start    : Press '1' or '2'\n"        &
+   "Controls : Joystick or arrows\n"      &
+   "Fire     : Joy button or 'A'\n"       &
+   "\n\n    Press Space to continue.\n"; 
+   
 constant HELP_1 : string :=
 
    "\n Demo Core for MEGA65 Version 1\n\n" &
@@ -188,8 +183,8 @@ constant SEL_CFG_FILE      : std_logic_vector(15 downto 0) := x"0101";
 
 -- START YOUR CONFIGURATION BELOW THIS LINE
 
-constant DIR_START         : string := "/m2m";
-constant CFG_FILE          : string := "/m2m/m2mcfg";
+constant DIR_START         : string := "/arcade/exedexes";
+constant CFG_FILE          : string := "/arcade/exedexes/exedcfg";
 
 --------------------------------------------------------------------------------------------------------------------
 -- General configuration settings: Reset, Pause, OSD behavior, Ascal, etc. (Selector 0x0110)
@@ -199,12 +194,15 @@ constant SEL_GENERAL       : std_logic_vector(15 downto 0) := x"0110";  -- !!! D
 
 -- START YOUR CONFIGURATION BELOW THIS LINE
 
--- at a minimum, keep the reset line active for this amount of "QNICE loops" (see gencfg.asm).
+-- keep the core in RESET state after the hardware starts up and after pressing the MEGA65's reset button
+constant RESET_KEEP        : boolean := false;
+
+-- alternative to RESET_KEEP: keep the reset line active for this amount of "QNICE loops" (see shell.asm)
 -- "0" means: deactivate this feature
 constant RESET_COUNTER     : natural := 100;
 
 -- put the core in PAUSE state if any OSD opens
-constant OPTM_PAUSE        : boolean := false;
+constant OPTM_PAUSE        : boolean := true;
 
 -- show the welcome screen in general
 constant WELCOME_ACTIVE    : boolean := true;
@@ -267,8 +265,8 @@ constant SEL_CORENAME      : std_logic_vector(15 downto 0) := x"0200";
 -- START YOUR CONFIGURATION BELOW THIS LINE
 
 -- Currently this is only used in the debug console. Use the welcome screen and the
--- help system to display the name and version of your core to the end user
-constant CORENAME          : string := "M2M DEMO CORE V1.0";
+-- help system to display the name and version of the core to the end user
+constant CORENAME          : string := "Exed Exes";
 
 --------------------------------------------------------------------------------------------------------------------
 -- "Help" menu / Options menu  (Selectors 0x0300 .. 0x0312): DO NOT TOUCH
@@ -291,7 +289,7 @@ constant SEL_OPTM_CRTROM      : std_logic_vector(15 downto 0) := x"0311";
 constant SEL_OPTM_CRTROM_STR  : std_logic_vector(15 downto 0) := x"0312";
 
 -- !!! DO NOT TOUCH !!! Configuration constants for OPTM_GROUPS (shell.asm and menu.asm expect them to be like this)
-constant OPTM_G_TEXT       : integer := 16#00000#;         -- text that cannot be selected
+constant OPTM_G_TEXT       : integer := 0;                -- text that cannot be selected
 constant OPTM_G_CLOSE      : integer := 16#000FF#;        -- menu items that closes menu
 constant OPTM_G_STDSEL     : integer := 16#00100#;        -- item within a group that is selected by default
 constant OPTM_G_LINE       : integer := 16#00200#;        -- draw a line at this position
@@ -306,18 +304,9 @@ constant OPTM_G_HELP       : integer := 16#0A000#;        -- line item means: he
 constant OPTM_G_SUBMENU    : integer := 16#0C000#;        -- starts/ends a section that is treated as submenu
 constant OPTM_G_LOAD_ROM   : integer := 16#18000#;        -- line item means: load ROM; first occurance = rom 0, second = rom 1, ...
 
+-- START YOUR CONFIGURATION BELOW THIS LINE:
 constant OPTM_GTC          : natural := 17;                -- Amount of significant bits in OPTM_G_* constants
 
--- @TODO/REMINDER: If we added in future more configuration constants that are not meant to be saved in the
--- configuration file, such as OPTM_G_MOUNT_DRV and OPTM_G_LOAD_ROM, then we need to make sure that we
--- also extend _ROSMS_4A and _ROSMC_NEXTBIT in options.asm accordingly.
--- Also: Right now OPTM_G_SUBMENU cannot have a "selected" state (and therefore cannot be saved in the config file)
--- and therefore _ROSMS_4A and _ROSMC_NEXTBIT are not yet handling the situation. If we decided to change that in future,
--- we would need to define the right semantics everywhere.
-
---------------------------------------------------------------------------------------------------------------------
--- "Help" menu / Options menu: START YOUR CONFIGURATION BELOW THIS LINE
---------------------------------------------------------------------------------------------------------------------
 
 -- Strings with which %s will be replaced in case the menu item is of type OPTM_G_MOUNT_DRV
 constant OPTM_S_MOUNT      : string := "<Mount Drive>";     -- no disk image mounted, yet
@@ -329,7 +318,7 @@ constant OPTM_S_SAVING     : string := "<Saving>";          -- the internal writ
 --             Do use a lower case \n. If you forget one of them or if you use upper case, you will run into undefined behavior.
 --          2. Start each line that contains an actual menu item (multi- or single-select) with a Space character,
 --             otherwise you will experience visual glitches.
-constant OPTM_SIZE         : natural := 35;  -- amount of items including empty lines:
+constant OPTM_SIZE         : natural := 52;  -- amount of items including empty lines:
                                              -- needs to be equal to the number of lines in OPTM_ITEMS and amount of items in OPTM_GROUPS
                                              -- IMPORTANT: If SAVE_SETTINGS is true and OPTM_SIZE changes: Make sure to re-generate and
                                              -- and re-distribute the config file. You can make a new one using M2M/tools/make_config.sh
@@ -337,45 +326,59 @@ constant OPTM_SIZE         : natural := 35;  -- amount of items including empty 
 -- Net size of the Options menu on the screen in characters (excluding the frame, which is hardcoded to two characters)
 -- Without submenus: Use OPTM_SIZE as height, otherwise count how large the actually visible main menu is.
 constant OPTM_DX           : natural := 23;
-constant OPTM_DY           : natural := 24;
+constant OPTM_DY           : natural := 23;
 
 constant OPTM_ITEMS        : string :=
-
-   " Demo Headline A\n"     &
+   " Exed Exes\n"           &
    "\n"                     &
-   " Item A.1\n"            &
-   " Item A.2\n"            &
-   " Item A.3\n"            &
-   " Item A.4\n"            &
+   " Flip joystick ports\n" &
    "\n"                     &
-   " Demo Headline B\n"     &
+   " Display Settings\n"    &
    "\n"                     &
-
-   " HDMI: %s\n"            &    -- HDMI submenu
+   " Rotate screen 90\n"    &
+   " HDMI: CRT emulation\n" &
+   " HDMI: %s\n"            &
    " HDMI Settings\n"       &
    "\n"                     &
    " 720p 50 Hz 16:9\n"     &
    " 720p 60 Hz 16:9\n"     &
    " 576p 50 Hz 4:3\n"      &
    " 576p 50 Hz 5:4\n"      &
-   " 640x480 60 Hz\n"       &
-   " 720x480 59.94 Hz\n"    &
-   " 800x600 60 Hz\n"       &
+    "\n"                    &
+   " Back to main menu\n"   &
+   " VGA: %s\n"             &
+   " VGA Display Mode\n"    &
+   "\n"                     &
+   " Standard\n"            &
+   "\n"                     &
+   " Retro 15 kHz mode\n"   &
+   "\n"                     &
+   " 15 kHz with HS/VS\n"   &
+   " 15 kHz with CSYNC\n"   &
    "\n"                     &
    " Back to main menu\n"   &
-
    "\n"                     &
-   " Drives\n"              &
+   " Game Setup\n"          &
+   "\n"                     & 
+   " DSW A & B & C\n"       &
+   "    Lives A \n"         &
+   "    Lives B \n"         &
+   "    Coin A - 1\n"       &
+   "    Coin A - 2\n"       &
+   "    Demo Sounds\n"      &
+   "    Unused\n"           &
+   "    Coin B - 1\n"       &
+   "    Coin B - 2\n"       &
+   "    Service Mode\n"     &
+   "    Difficulty A\n"     &
+   "    Difficulty B\n"     &
+   "    Difficulty C\n"     &
+   "    Round Advance\n"    &
+   "    Bonus Life A\n"     &
+   "    Bonus Life B\n"     &
+   "    Bonus Life C\n"     &
    "\n"                     &
-   " Drive X:%s\n"          &
-   " Drive Y:%s\n"          &
-   " Drive Z:%s\n"          &
-   "\n"                     &
-   " Another Headline\n"    &
-   "\n"                     &
-   " HDMI: CRT emulation\n" &
-   " HDMI: Zoom-in\n"       &
-   " Audio improvements\n"  &
+   " Back to main menu\n"   &
    "\n"                     &
    " Close Menu\n";
 
@@ -384,14 +387,42 @@ constant OPTM_ITEMS        : string :=
 -- and be aware that you can only have a maximum of 254 groups (255 means "Close Menu");
 -- also make sure that your group numbers are monotonic increasing (e.g. 1, 2, 3, 4, ...)
 -- single-select items and therefore also drive mount items need to have unique identifiers
-constant OPTM_G_Demo_A     : integer := 1;
-constant OPTM_G_HDMI       : integer := 2;
-constant OPTM_G_Drive_X    : integer := 3;
-constant OPTM_G_Drive_Y    : integer := 4;
-constant OPTM_G_Drive_Z    : integer := 5;
-constant OPTM_G_CRT        : integer := 6;
-constant OPTM_G_Zoom       : integer := 7;
-constant OPTM_G_Audio      : integer := 8;
+constant OPTM_G_OSDO           : integer := 1;
+constant OPTM_G_DIMV           : integer := 2;
+constant OPTM_G_HDMI           : integer := 3;
+constant OPTM_G_ROT90          : integer := 4;
+constant OPTM_G_CRT            : integer := 5;
+-- Dipswitch A
+constant OPTM_G_GAP_DSWA0      : integer := 6;
+constant OPTM_G_GAP_DSWA1      : integer := 7;
+constant OPTM_G_GAP_DSWA2      : integer := 8;
+constant OPTM_G_GAP_DSWA3      : integer := 9;
+constant OPTM_G_GAP_DSWA4      : integer := 10;
+constant OPTM_G_GAP_DSWA5      : integer := 11;
+constant OPTM_G_GAP_DSWA6      : integer := 12;
+constant OPTM_G_GAP_DSWA7      : integer := 13;
+-- Dipswitch B
+constant OPTM_G_GAP_DSWB0      : integer := 14;
+constant OPTM_G_GAP_DSWB1      : integer := 15;
+constant OPTM_G_GAP_DSWB2      : integer := 16;
+constant OPTM_G_GAP_DSWB3      : integer := 17;
+constant OPTM_G_GAP_DSWB4      : integer := 18;
+constant OPTM_G_GAP_DSWB5      : integer := 19;
+constant OPTM_G_GAP_DSWB6      : integer := 20;
+constant OPTM_G_GAP_DSWB7      : integer := 21;
+-- Dipswitch C
+constant OPTM_G_GAP_DSWC0      : integer := 22;
+constant OPTM_G_GAP_DSWC1      : integer := 23;
+constant OPTM_G_GAP_DSWC2      : integer := 24;
+constant OPTM_G_GAP_DSWC3      : integer := 25;
+constant OPTM_G_GAP_DSWC4      : integer := 26;
+constant OPTM_G_GAP_DSWC5      : integer := 27;
+constant OPTM_G_GAP_DSWC6      : integer := 28;
+constant OPTM_G_GAP_DSWC7      : integer := 29;
+
+constant OPTM_G_VGA_MODES      : integer := 30;
+constant OPTM_G_FLIPJ          : integer := 31;
+constant OPTM_G_SOFTW          : integer := 32;
 
 -- !!! DO NOT TOUCH !!!
 type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC- 1;
@@ -399,45 +430,60 @@ type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC-
 -- define your menu groups: which menu items are belonging together to form a group?
 -- where are separator lines? which items should be selected by default?
 -- make sure that you have exactly the same amount of entries here than in OPTM_ITEMS and defined by OPTM_SIZE
-constant OPTM_GROUPS       : OPTM_GTYPE := ( OPTM_G_TEXT + OPTM_G_HEADLINE,            -- Headline "Demo Headline A"
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_Demo_A + OPTM_G_START,             -- Item A.1, cursor start position
-                                             OPTM_G_Demo_A + OPTM_G_STDSEL,            -- Item A.2, selected by default
-                                             OPTM_G_Demo_A,                            -- Item A.3
-                                             OPTM_G_Demo_A,                            -- Item A.4
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_TEXT + OPTM_G_HEADLINE,            -- Headline "Demo Headline B"
-                                             OPTM_G_LINE,                              -- Line
+constant OPTM_GROUPS       : OPTM_GTYPE := ( OPTM_G_TEXT + OPTM_G_HEADLINE,                             -- Headline "Demo Headline A"
+                                             OPTM_G_LINE,                                               -- Line
+                                             OPTM_G_FLIPJ + OPTM_G_SINGLESEL + OPTM_G_START ,           -- Flip joys On/Off toggle ("Single Select")
+                                             OPTM_G_LINE,                                               -- Line
+                                             OPTM_G_TEXT + OPTM_G_HEADLINE,                             -- Headline "HDMI Mode""
+                                             OPTM_G_LINE,                                               -- Line
+                                             OPTM_G_ROT90 + OPTM_G_SINGLESEL + OPTM_G_STDSEL,           -- Rotate On/Off toggle ("Single Select")
+                                             OPTM_G_CRT   + OPTM_G_SINGLESEL + OPTM_G_STDSEL,           -- CRT emulation On/Off toggle ("Single Select")
+                                             OPTM_G_SUBMENU,                                            -- HDMI Settings Submenu start
+                                             OPTM_G_TEXT + OPTM_G_HEADLINE,                             -- HDMI Settings
+                                             OPTM_G_LINE,                                               -- Line
+                                             OPTM_G_HDMI,                                               -- 720p 50 Hz 16:9, selected by default
+                                             OPTM_G_HDMI + OPTM_G_STDSEL,                               -- 720p 60 Hz 16:9
+                                             OPTM_G_HDMI,                                               -- 576p 50 Hz 4:3
+                                             OPTM_G_HDMI,                                               -- 576p 50 Hz 5:4
+                                             OPTM_G_LINE,                                               -- Line
+                                             OPTM_G_CLOSE + OPTM_G_SUBMENU,                             -- Close submenu / back to main menus
+                                             OPTM_G_SUBMENU,
+                                             OPTM_G_HEADLINE,
+                                             OPTM_G_LINE,
+                                             OPTM_G_VGA_MODES     + OPTM_G_STDSEL,
+                                             OPTM_G_LINE,
+                                             OPTM_G_TEXT,
+                                             OPTM_G_LINE,
+                                             OPTM_G_VGA_MODES,
+                                             OPTM_G_VGA_MODES,
+                                             OPTM_G_LINE,
+                                             OPTM_G_CLOSE         + OPTM_G_SUBMENU,
+                                             OPTM_G_LINE,                                              
+                                             OPTM_G_TEXT + OPTM_G_HEADLINE,                          
+                                             OPTM_G_LINE,                                             
+                                             OPTM_G_SUBMENU,                                                                                       
+                                             OPTM_G_GAP_DSWA0  + OPTM_G_SINGLESEL,                  
+                                             OPTM_G_GAP_DSWA1  + OPTM_G_SINGLESEL,                 
+                                             OPTM_G_GAP_DSWA2  + OPTM_G_SINGLESEL,                   
+                                             OPTM_G_GAP_DSWA3  + OPTM_G_SINGLESEL,                    
+                                             OPTM_G_GAP_DSWA4  + OPTM_G_SINGLESEL,                 
+                                             OPTM_G_GAP_DSWA5  + OPTM_G_SINGLESEL,                
+                                             OPTM_G_GAP_DSWA6  + OPTM_G_SINGLESEL,                  
+                                             OPTM_G_GAP_DSWA7  + OPTM_G_SINGLESEL,              
+                                             OPTM_G_GAP_DSWB0  + OPTM_G_SINGLESEL,                   
+                                             OPTM_G_GAP_DSWB1  + OPTM_G_SINGLESEL,                   
+                                             OPTM_G_GAP_DSWB2  + OPTM_G_SINGLESEL,                   
+                                             OPTM_G_GAP_DSWB3  + OPTM_G_SINGLESEL,                   
+                                             OPTM_G_GAP_DSWB4  + OPTM_G_SINGLESEL,
+                                             OPTM_G_GAP_DSWB5  + OPTM_G_SINGLESEL,
+                                             OPTM_G_GAP_DSWB6  + OPTM_G_SINGLESEL,  
+                                             OPTM_G_GAP_DSWB7  + OPTM_G_SINGLESEL,                                    
+                                             OPTM_G_LINE,                                             -- Line
+                                             OPTM_G_CLOSE + OPTM_G_SUBMENU,                           -- Close submenu / back to main menu
+											 OPTM_G_LINE,                                             -- Line
+											 OPTM_G_CLOSE                                             -- Close Menu
+											 );
 
-                                             OPTM_G_SUBMENU,                           -- HDMI submenu block: START: "HDMI: %s"
-                                             OPTM_G_TEXT + OPTM_G_HEADLINE,            -- Headline "HDMI Settings"
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_HDMI + OPTM_G_STDSEL,              -- 720p 50 Hz 16:9, selected by default
-                                             OPTM_G_HDMI,                              -- 720p 60 Hz 16:9
-                                             OPTM_G_HDMI,                              -- 576p 50 Hz 4:3
-                                             OPTM_G_HDMI,                              -- 576p 50 Hz 5:4
-                                             OPTM_G_HDMI,                              -- 640x480 60 Hz
-                                             OPTM_G_HDMI,                              -- 720x480 59.94 Hz
-                                             OPTM_G_HDMI,                              -- 600p 60 Hz
-                                             OPTM_G_LINE,                              -- open
-                                             OPTM_G_CLOSE + OPTM_G_SUBMENU,            -- Close submenu / back to main menu
-                                                                                       -- HDMI submenu block: END
-
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_TEXT + OPTM_G_HEADLINE,            -- Headline "Drives"
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_Drive_X + OPTM_G_MOUNT_DRV,        -- Drive X
-                                             OPTM_G_Drive_Y + OPTM_G_MOUNT_DRV,        -- Drive Y
-                                             OPTM_G_Drive_Z + OPTM_G_MOUNT_DRV,        -- Drive Z
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_TEXT + OPTM_G_HEADLINE,            -- Headline "Another Headline"
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_CRT     + OPTM_G_SINGLESEL,        -- On/Off toggle ("Single Select")
-                                             OPTM_G_Zoom    + OPTM_G_SINGLESEL,        -- On/Off toggle ("Single Select")
-                                             OPTM_G_Audio   + OPTM_G_SINGLESEL,        -- On/Off toggle ("Single Select")
-                                             OPTM_G_LINE,                              -- Line
-                                             OPTM_G_CLOSE                              -- Close Menu
-                                           );
 
 --------------------------------------------------------------------------------------------------------------------
 -- !!! CAUTION: M2M FRAMEWORK CODE !!! DO NOT TOUCH ANYTHING BELOW THIS LINE !!!
@@ -449,43 +495,48 @@ constant OPTM_GROUPS       : OPTM_GTYPE := ( OPTM_G_TEXT + OPTM_G_HEADLINE,     
 
 begin
 
-addr_decode : process(clk_i)
-   -- return ASCII value of given string at the position defined by index (zero-based)
-   pure function str2data(str : string; index : integer) return std_logic_vector is
+addr_decode : process(clk_i, address_i)
+   variable index : integer;
+   variable whs_array_index : integer;
+   variable whs_page_index : integer;
+
+   -- return ASCII value of given string at the position defined by address_i(11 downto 0)
+   function str2data(str : string) return std_logic_vector is
    variable strpos : integer;
    begin
-      strpos := index + 1;
+      strpos := to_integer(unsigned(address_i(11 downto 0))) + 1;
       if strpos <= str'length then
          return std_logic_vector(to_unsigned(character'pos(str(strpos)), 16));
       else
-         return X"0000"; -- zero terminated strings
+         return (others => '0'); -- zero terminated strings
       end if;
-   end function str2data;
+   end;
 
    -- return the dimensions of the Options menu
-   pure function getDXDY(dx, dy, index: natural) return std_logic_vector is
+   function getDXDY(dx, dy, index: natural) return std_logic_vector is
    begin
       case index is
          when 0 => return std_logic_vector(to_unsigned(dx + 2, 16));
          when 1 => return std_logic_vector(to_unsigned(dy + 2, 16));
-         when others => return X"0000";
+         when others => return (others => '0');
       end case;
-   end function getDXDY;
+   end;
 
    -- convert bool to std_logic_vector
-   pure function bool2slv(b: boolean) return std_logic_vector is
+   function bool2slv(b: boolean) return std_logic_vector is
    begin
       if b then
          return x"0001";
       else
          return x"0000";
       end if;
-   end function bool2slv;
+   end;
 
    -- return the General Configuration settings
    function getGenConf(index: natural) return std_logic_vector is
    begin
       case index is
+         when 0      => return bool2slv(RESET_KEEP);
          when 1      => return std_logic_vector(to_unsigned(RESET_COUNTER, 16));
          when 2      => return bool2slv(OPTM_PAUSE);
          when 3      => return bool2slv(WELCOME_ACTIVE);
@@ -503,20 +554,14 @@ addr_decode : process(clk_i)
          when 15     => return bool2slv(SAVE_SETTINGS);
          when others => return x"0000";
       end case;
-   end function getGenConf;
-
-   variable index           : integer;
-   variable whs_page_index  : integer;
-   variable whs_array_index : integer;
+   end;
 
 begin
+   index := to_integer(unsigned(address_i(11 downto 0)));
+   whs_array_index := to_integer(unsigned(address_i(23 downto 20)));
+   whs_page_index  := to_integer(unsigned(address_i(19 downto 12)));
 
    if falling_edge(clk_i) then
-
-      index := to_integer(unsigned(address_i(11 downto 0)));
-      whs_page_index  := to_integer(unsigned(address_i(19 downto 12)));
-      whs_array_index := to_integer(unsigned(address_i(23 downto 20)));
-
       data_o <= x"EEEE";
 
       -----------------------------------------------------------------------------------
@@ -530,7 +575,9 @@ begin
                data_o <= std_logic_vector(to_unsigned(WHS(whs_array_index).page_count, 16));
             else
                if index < WHS(whs_array_index).page_length(whs_page_index) then
-                  data_o <= str2data(WHS_DATA, WHS(whs_array_index).page_start(whs_page_index) + index);
+                  data_o <= std_logic_vector(to_unsigned(character'pos(
+                                             WHS_DATA(WHS(whs_array_index).page_start(whs_page_index) + index + 1)
+                                            ), 16));
                else
                   data_o <= (others => '0'); -- zero-terminated strings
                end if;
@@ -545,13 +592,13 @@ begin
 
          case address_i(27 downto 12) is
             when SEL_GENERAL           => data_o <= getGenConf(index);
-            when SEL_DIR_START         => data_o <= str2data(DIR_START, index);
-            when SEL_CFG_FILE          => data_o <= str2data(CFG_FILE, index);
-            when SEL_CORENAME          => data_o <= str2data(CORENAME, index);
-            when SEL_OPTM_ITEMS        => data_o <= str2data(OPTM_ITEMS, index);
-            when SEL_OPTM_MOUNT_STR    => data_o <= str2data(OPTM_S_MOUNT, index);
-            when SEL_OPTM_CRTROM_STR   => data_o <= str2data(OPTM_S_CRTROM, index);
-            when SEL_OPTM_SAVING_STR   => data_o <= str2data(OPTM_S_SAVING, index);
+            when SEL_DIR_START         => data_o <= str2data(DIR_START);
+            when SEL_CFG_FILE          => data_o <= str2data(CFG_FILE);
+            when SEL_CORENAME          => data_o <= str2data(CORENAME);            
+            when SEL_OPTM_ITEMS        => data_o <= str2data(OPTM_ITEMS);
+            when SEL_OPTM_MOUNT_STR    => data_o <= str2data(OPTM_S_MOUNT);
+            when SEL_OPTM_CRTROM_STR   => data_o <= str2data(OPTM_S_CRTROM);
+            when SEL_OPTM_SAVING_STR   => data_o <= str2data(OPTM_S_SAVING);
             when SEL_OPTM_GROUPS       => data_o <= std_logic(to_unsigned(OPTM_GROUPS(index), OPTM_GTC)(15)) &
                                                     std_logic(to_unsigned(OPTM_GROUPS(index), OPTM_GTC)(14)) & "0" &
                                                     std_logic(to_unsigned(OPTM_GROUPS(index), OPTM_GTC)(12)) & "0000" &
@@ -573,4 +620,3 @@ begin
 end process;
 
 end architecture beh;
-

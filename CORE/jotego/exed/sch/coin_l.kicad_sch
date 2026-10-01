@@ -1,0 +1,18 @@
+(kicad_sch (version 20211123) (generator eeschema)
+
+  (uuid 5487aacf-92ea-4764-94c9-b9b8071316d7)
+
+  (paper "A4")
+
+  (title_block
+    (title "Exed Exes board B")
+    (date "2021")
+    (rev "José Tejada")
+    (company "JOTEGO")
+    (comment 1 "https://patreon.com/topapate")
+  )
+
+  (lib_symbols
+  )
+
+)
