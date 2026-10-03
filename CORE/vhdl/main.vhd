@@ -105,8 +105,6 @@ signal ee_dipsw_a  : std_logic_vector(7 downto 0);
 signal ee_dipsw_b  : std_logic_vector(7 downto 0);
 signal ee_dipsw    : std_logic_vector(31 downto 0);
 
-signal dip_pause   : std_logic;
-signal dip_flip    : std_logic;
 
 -- Debug / layer controls
 signal ee_debug_view: std_logic_vector(7 downto 0);
@@ -118,6 +116,9 @@ signal ee_pxl2_cen  : std_logic;
 signal psg0        : std_logic_vector(9 downto 0);
 signal psg1        : std_logic_vector(10 downto 0);
 signal psg2        : std_logic_vector(10 downto 0);
+
+signal audio_mixed : signed(15 downto 0);
+signal audio_peak  : std_logic;
 
 -- Main CPU ROM
 signal main_cs     : std_logic;
@@ -171,90 +172,144 @@ signal prom_we     : std_logic;
 signal pre_addr    : std_logic_vector(25 downto 0);
 signal post_addr   : std_logic_vector(25 downto 0);
 
+
+
+-- Offer some keyboard controls in addition to Joy 1 Controls
 constant m65_1     : integer := 56; --Player 1 Start
 constant m65_2     : integer := 59; --Player 2 Start
 constant m65_5     : integer := 16; --Insert coin 1
 constant m65_6     : integer := 19; --Insert coin 2
 constant m65_9     : integer := 32; --Service button
 
+constant m65_up_crsr    : integer := 73; --Player up
+constant m65_vert_crsr  : integer := 7;  --Player down
+constant m65_left_crsr  : integer := 74; --Player left
+constant m65_horz_crsr  : integer := 2;  --Player right
+constant m65_z          : integer := 12; --Fire 1
+constant m65_x          : integer := 23; --Fire 2
+constant m65_capslock   : integer := 72; --Pause
 
-component jtexed_game is
-   port (
-      -- Clock / reset
-      clk             : in  std_logic;
-      rst             : in  std_logic;
 
-      -- Clock enables
-      pxl_cen         : out std_logic;
-      pxl2_cen        : out std_logic;
 
-      -- Controls / framework
-      joystick1       : in  std_logic_vector(9 downto 0);
-      joystick2       : in  std_logic_vector(9 downto 0);
-      coin            : in  std_logic_vector(1 downto 0);
-      start           : in  std_logic_vector(1 downto 0);
-      service         : in  std_logic;
-      tilt            : in  std_logic;
-      dipsw           : in  std_logic_vector(23 downto 0);
-      dip_pause       : in  std_logic;
-      flip            : in  std_logic;
 
-      -- Video
-      red             : out std_logic_vector(3 downto 0);
-      green           : out std_logic_vector(3 downto 0);
-      blue            : out std_logic_vector(3 downto 0);
-      LHBL            : out std_logic;
-      LVBL            : out std_logic;
-      HS              : out std_logic;
-      VS              : out std_logic;
+-- -------------------------------------------------------------------------
+-- Exed Exes ROM download map
+-- -------------------------------------------------------------------------
+constant C_MAIN_START : natural := 16#000000#;
+constant C_SND_START  : natural := 16#00C000#;
+constant C_MAP1_START : natural := 16#010000#;
+constant C_MAP2_START : natural := 16#014000#;
+constant C_CHAR_START : natural := 16#016000#;
+constant C_SCR1_START : natural := 16#018000#;
+constant C_SCR2_START : natural := 16#020000#;
+constant C_OBJ_START  : natural := 16#024000#;
+constant C_PROM_START : natural := 16#02C000#;
+constant C_ROM_END    : natural := 16#02D000#;
 
-      -- Audio
-      snd             : out signed(15 downto 0);
-      sample          : out std_logic;
+signal dl_main_off : std_logic_vector(25 downto 0);
+signal dl_snd_off  : std_logic_vector(25 downto 0);
+signal dl_map1_off : std_logic_vector(25 downto 0);
+signal dl_map2_off : std_logic_vector(25 downto 0);
+signal dl_char_off : std_logic_vector(25 downto 0);
+signal dl_scr1_off : std_logic_vector(25 downto 0);
+signal dl_scr2_off : std_logic_vector(25 downto 0);
+signal dl_obj_off  : std_logic_vector(25 downto 0);
 
-      -- Main CPU ROM
-      main_addr       : out std_logic_vector(16 downto 0);
-      main_data       : in  std_logic_vector(7 downto 0);
-      main_ok         : in  std_logic;
+signal main_we, snd_we, map1_we : std_logic;
+signal map2_we0, map2_we1 : std_logic;
+signal char_we0, char_we1 : std_logic;
+signal scr1_we0, scr1_we1, scr1_we2, scr1_we3 : std_logic;
+signal scr2_we0, scr2_we1, scr2_we2, scr2_we3 : std_logic;
+signal obj_we0, obj_we1 : std_logic;
 
-      -- Sound CPU ROM
-      snd_addr        : out std_logic_vector(14 downto 0);
-      snd_data        : in  std_logic_vector(7 downto 0);
-      snd_ok          : in  std_logic;
+signal map2_q0, map2_q1 : std_logic_vector(7 downto 0);
+signal char_q0, char_q1 : std_logic_vector(7 downto 0);
+signal scr1_q0, scr1_q1, scr1_q2, scr1_q3 : std_logic_vector(7 downto 0);
+signal scr2_q0, scr2_q1, scr2_q2, scr2_q3 : std_logic_vector(7 downto 0);
+signal obj_q0, obj_q1 : std_logic_vector(7 downto 0);
 
-      -- MAP 1 ROM
-      map1_addr       : out std_logic_vector(13 downto 0);
-      map1_data       : in  std_logic_vector(7 downto 0);
-      map1_ok         : in  std_logic;
-
-      -- MAP 2 ROM
-      map2_addr       : out std_logic_vector(12 downto 0);
-      map2_data       : in  std_logic_vector(15 downto 0);
-      map2_ok         : in  std_logic;
-
-      -- Character ROM
-      char_addr       : out std_logic_vector(13 downto 0);
-      char_data       : in  std_logic_vector(15 downto 0);
-      char_ok         : in  std_logic;
-
-      -- Scroll 1 ROM
-      scr1_addr       : out std_logic_vector(14 downto 0);
-      scr1_data       : in  std_logic_vector(31 downto 0);
-      scr1_ok         : in  std_logic;
-
-      -- Scroll 2 ROM
-      scr2_addr       : out std_logic_vector(13 downto 0);
-      scr2_data       : in  std_logic_vector(31 downto 0);
-      scr2_ok         : in  std_logic;
-
-      -- Object / sprite ROM
-      obj_addr        : out std_logic_vector(14 downto 0);
-      obj_data        : in  std_logic_vector(15 downto 0);
-      obj_ok          : in  std_logic
-   );
-end component;
+signal main_addr_d : std_logic_vector(main_addr'range);
+signal snd_addr_d  : std_logic_vector(snd_addr'range);
+signal map1_addr_d : std_logic_vector(map1_addr'range);
+signal map2_addr_d : std_logic_vector(map2_addr'range);
+signal char_addr_d : std_logic_vector(char_addr'range);
+signal scr1_addr_d : std_logic_vector(scr1_addr'range);
+signal scr2_addr_d : std_logic_vector(scr2_addr'range);
+signal obj_addr_d  : std_logic_vector(obj_addr'range);
 
 begin
+
+    -- Core reset
+    reset <= reset_soft_i or reset_hard_i;
+
+    -- Feed the raw QNICE byte address through Jotego's original download
+    -- address transforms. pre_addr handles MAP2/SCR2; post_addr handles
+    -- SCR1/OBJ. The resulting post_addr is the byte address stored in BRAM.
+    ioctl_addr <= '0' & dn_addr_i;
+    prog_addr  <= pre_addr;
+    prog_data  <= dn_data_i;
+    prom_we    <= dn_wr_i when unsigned(dn_addr_i) >= C_PROM_START and
+                               unsigned(dn_addr_i) <  C_ROM_END else '0';
+
+    dl_main_off <= std_logic_vector(unsigned(post_addr) - C_MAIN_START);
+    dl_snd_off  <= std_logic_vector(unsigned(post_addr) - C_SND_START);
+    dl_map1_off <= std_logic_vector(unsigned(post_addr) - C_MAP1_START);
+    dl_map2_off <= std_logic_vector(unsigned(post_addr) - C_MAP2_START);
+    dl_char_off <= std_logic_vector(unsigned(post_addr) - C_CHAR_START);
+    dl_scr1_off <= std_logic_vector(unsigned(post_addr) - C_SCR1_START);
+    dl_scr2_off <= std_logic_vector(unsigned(post_addr) - C_SCR2_START);
+    dl_obj_off  <= std_logic_vector(unsigned(post_addr) - C_OBJ_START);
+
+    main_we <= dn_wr_i when unsigned(post_addr) >= C_MAIN_START and unsigned(post_addr) < C_SND_START else '0';
+    snd_we  <= dn_wr_i when unsigned(post_addr) >= C_SND_START  and unsigned(post_addr) < C_MAP1_START else '0';
+    map1_we <= dn_wr_i when unsigned(post_addr) >= C_MAP1_START and unsigned(post_addr) < C_MAP2_START else '0';
+
+    map2_we0 <= dn_wr_i when unsigned(post_addr) >= C_MAP2_START and unsigned(post_addr) < C_CHAR_START and post_addr(0)='0' else '0';
+    map2_we1 <= dn_wr_i when unsigned(post_addr) >= C_MAP2_START and unsigned(post_addr) < C_CHAR_START and post_addr(0)='1' else '0';
+    char_we0 <= dn_wr_i when unsigned(post_addr) >= C_CHAR_START and unsigned(post_addr) < C_SCR1_START and post_addr(0)='0' else '0';
+    char_we1 <= dn_wr_i when unsigned(post_addr) >= C_CHAR_START and unsigned(post_addr) < C_SCR1_START and post_addr(0)='1' else '0';
+
+    scr1_we0 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="00" else '0';
+    scr1_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="01" else '0';
+    scr1_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="10" else '0';
+    scr1_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="11" else '0';
+    scr2_we0 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="00" else '0';
+    scr2_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="01" else '0';
+    scr2_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="10" else '0';
+    scr2_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="11" else '0';
+    obj_we0  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='0' else '0';
+    obj_we1  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='1' else '0';
+
+    map2_data <= map2_q1 & map2_q0;
+    char_data <= char_q1 & char_q0;
+    scr1_data <= scr1_q3 & scr1_q2 & scr1_q1 & scr1_q0;
+    scr2_data <= scr2_q3 & scr2_q2 & scr2_q1 & scr2_q0;
+    obj_data  <= obj_q1 & obj_q0;
+
+    -- Synchronous BRAMs return the requested word one main clock later.
+    -- Hold *_ok low for the first cycle after an address change.
+    process(clk_main_i)
+    begin
+       if rising_edge(clk_main_i) then
+          main_ok <= '1' when main_addr = main_addr_d else '0';
+          snd_ok  <= '1' when snd_addr  = snd_addr_d  else '0';
+          map1_ok <= '1' when map1_addr = map1_addr_d else '0';
+          map2_ok <= '1' when map2_addr = map2_addr_d else '0';
+          char_ok <= '1' when char_addr = char_addr_d else '0';
+          scr1_ok <= '1' when scr1_addr = scr1_addr_d else '0';
+          scr2_ok <= '1' when scr2_addr = scr2_addr_d else '0';
+          obj_ok  <= '1' when obj_addr  = obj_addr_d  else '0';
+
+          main_addr_d <= main_addr;
+          snd_addr_d  <= snd_addr;
+          map1_addr_d <= map1_addr;
+          map2_addr_d <= map2_addr;
+          char_addr_d <= char_addr;
+          scr1_addr_d <= scr1_addr;
+          scr2_addr_d <= scr2_addr;
+          obj_addr_d  <= obj_addr;
+       end if;
+    end process;
 
     -- SW1
     ee_dipsw_a <= not (
@@ -279,8 +334,34 @@ begin
     
     ee_dipsw <=  x"0000" & ee_dipsw_b & ee_dipsw_a;
     ee_cab_1p(0) <= keyboard_n(m65_1); -- 1P Start
+    ee_cab_1p(1) <= keyboard_n(m65_2); -- 2P Start
     ee_coin(0) <= keyboard_n(m65_6);   -- Coin 1
     ee_coin(1) <= keyboard_n(m65_5);   -- Coin 2
+    
+    -- -------------------------------------------------------------------------
+    -- Player 1 controls
+    -- Active low
+    -- -------------------------------------------------------------------------
+    
+    -- Player 1 joystick - active low
+    joystick1(0) <= joy_1_right_n_i and keyboard_n(m65_horz_crsr);
+    joystick1(1) <= joy_1_left_n_i  and keyboard_n(m65_left_crsr);
+    joystick1(2) <= joy_1_down_n_i  and keyboard_n(m65_vert_crsr);
+    joystick1(3) <= joy_1_up_n_i    and keyboard_n(m65_up_crsr);
+    -- Button 1 = Z / joystick fire
+    joystick1(4) <= joy_1_fire_n_i and keyboard_n(m65_z);
+    -- Button 2 = X / second joystick button
+    joystick1(5) <=  keyboard_n(m65_x);
+    
+    -- Player 2 joystick - active low
+    joystick2(0) <= joy_2_right_n_i;
+    joystick2(1) <= joy_2_left_n_i;
+    joystick2(2) <= joy_2_down_n_i;
+    joystick2(3) <= joy_2_up_n_i;
+    -- Button 1 = Z / joystick fire
+    joystick2(4) <= joy_2_fire_n_i;
+    -- Button 2 = X / second joystick button
+    joystick2(5) <=  keyboard_n(m65_x);
    
    i_jtexed_game : entity work.jtexed_game
    port map (
@@ -293,12 +374,12 @@ begin
       coin        => ee_coin,
       service     => keyboard_n(m65_9),
       joystick1   => joystick1,
-      joystick2   => joystick2,
+      joystick2   => joystick2, -- temporary
 
       -- DIP switches
       dipsw       => ee_dipsw,
-      dip_pause   => dip_pause,
-      dip_flip    => dip_flip,
+      dip_pause   => keyboard_n(m65_capslock),-- '1',     -- pause is active low, active high run
+      dip_flip    => '1',                     -- active low flip screen
 
       -- Debug / layer controls
       gfx_en      => "1111",
@@ -376,8 +457,46 @@ begin
       pre_addr    => pre_addr,
       post_addr   => post_addr
    );
+   
+   i_audio_mixer : entity work.jtframe_mixer
+   generic map (
+      W0   => 10,
+      W1   => 11,
+      W2   => 11,
+      W3   => 16,
+      WOUT => 16
+   )
+   port map (
+      rst   => reset,
+      clk   => clk_main_i,
+      cen   => '1',
+
+      ch0   => signed(psg0),
+      ch1   => signed(psg1),
+      ch2   => signed(psg2),
+      ch3   => to_signed(0, 16),
+
+      gain0 => x"07",
+      gain1 => x"10",
+      gain2 => x"10",
+      gain3 => x"00",
+
+      mixed => audio_mixed,
+      peak  => audio_peak
+   );
+
+    audio_left_o  <= audio_mixed;
+    audio_right_o <= audio_mixed;
 
   
+
+   -- ----------------------------------------------------------------------
+   -- Exed Exes ROM BRAMs. Port A = 48 MHz core read, Port B = QNICE write.
+   -- Wide JTFRAME buses are assembled from byte lanes.
+   -- ----------------------------------------------------------------------
+
+   
+
    i_keyboard : entity work.keyboard
       port map (
          clk_main_i           => clk_main_i,

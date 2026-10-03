@@ -297,9 +297,7 @@ constant C_320_288_50 : video_modes_t := (
 begin
 
    -- Configure the LEDs:
-   -- Power led on and green, drive led always off
-   main_power_led_o       <= '1';
-   main_power_led_col_o   <= x"00FF00";
+   -- drive led always off
    main_drive_led_o       <= '0';
    main_drive_led_col_o   <= x"00FF00"; 
    
@@ -592,11 +590,13 @@ begin
    --    "Standard VGA":                     qnice_retro15kHz_o=0 and qnice_csync_o=0
    --    "Retro 15 kHz with HSync and VSync" qnice_retro15kHz_o=1 and qnice_csync_o=0
    --    "Retro 15 kHz with CSync"           qnice_retro15kHz_o=1 and qnice_csync_o=1
-   qnice_scandoubler_o        <= (not qnice_osm_control_i(C_MENU_VGA_15KHZHSVS)) and
-                                 (not qnice_osm_control_i(C_MENU_VGA_15KHZCS));   
-   qnice_retro15kHz_o <= qnice_osm_control_i(C_MENU_VGA_15KHZHSVS) or qnice_osm_control_i(C_MENU_VGA_15KHZCS);
-   qnice_csync_o      <= qnice_osm_control_i(C_MENU_VGA_15KHZCS);
-   qnice_osm_cfg_scaling_o    <= (others => '1');
+   qnice_video_mode_o <= C_VIDEO_SVGA_800_60    when qnice_osm_control_i(C_MENU_SVGA_800_60)    = '1' else
+                      C_VIDEO_HDMI_720_5994   when qnice_osm_control_i(C_MENU_HDMI_720_5994)  = '1' else
+                      C_VIDEO_HDMI_640_60     when qnice_osm_control_i(C_MENU_HDMI_640_60)    = '1' else
+                      C_VIDEO_HDMI_5_4_50     when qnice_osm_control_i(C_MENU_HDMI_5_4_50)    = '1' else
+                      C_VIDEO_HDMI_4_3_50     when qnice_osm_control_i(C_MENU_HDMI_4_3_50)    = '1' else
+                      C_VIDEO_HDMI_16_9_60    when qnice_osm_control_i(C_MENU_HDMI_16_9_60)   = '1' else
+                      C_VIDEO_HDMI_16_9_50;
 
    -- ascal filters that are applied while processing the input
    -- 00 : Nearest Neighbour
@@ -622,27 +622,196 @@ begin
 
    core_specific_devices : process(all)
    begin
-      -- make sure that this is x"EEEE" by default and avoid a register here by having this default value
-      qnice_dev_data_o     <= x"EEEE";
-      qnice_dev_wait_o     <= '0';
+      -- Defaults
+      qnice_dev_data_o <= x"EEEE";
+      qnice_dev_wait_o <= '0';
 
-       -- Default values
       qnice_dn_wr      <= '0';
       qnice_dn_addr    <= (others => '0');
       qnice_dn_data    <= (others => '0');
 
       case qnice_dev_id_i is
-   
-        
-              
 
-         when others => null;
+         ------------------------------------------------------------------
+         -- $0100 - Main CPU ROM
+         -- $000000 - $00BFFF
+         ------------------------------------------------------------------
+         when x"0100" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0101 - Sound CPU ROM
+         -- $00C000 - $00FFFF
+         ------------------------------------------------------------------
+         when x"0101" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#00C000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0102 - MAP1 ROM
+         -- $010000 - $013FFF
+         ------------------------------------------------------------------
+         when x"0102" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#010000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0103 - MAP2 ROM
+         -- $014000 - $015FFF
+         ------------------------------------------------------------------
+         when x"0103" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#014000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0104 - Character ROM
+         -- $016000 - $017FFF
+         ------------------------------------------------------------------
+         when x"0104" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#016000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0105 - Scroll 1 ROM
+         -- $018000 - $01FFFF
+         ------------------------------------------------------------------
+         when x"0105" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#018000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0106 - Scroll 2 ROM
+         -- $020000 - $023FFF
+         ------------------------------------------------------------------
+         when x"0106" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#020000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0107 - Object / Sprite ROM
+         -- $024000 - $02BFFF
+         ------------------------------------------------------------------
+         when x"0107" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#024000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0108 - IRQ PROM
+         -- $02C000 - $02C0FF
+         ------------------------------------------------------------------
+         when x"0108" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#02C000#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         ------------------------------------------------------------------
+         -- $0109 - Colour / lookup PROMs
+         -- $02C100 - $02CB1F
+         ------------------------------------------------------------------
+         when x"0109" =>
+            qnice_dn_addr <= std_logic_vector(
+               resize(unsigned(qnice_dev_addr_i), qnice_dn_addr'length)
+               + to_unsigned(16#02C100#, qnice_dn_addr'length)
+            );
+
+            qnice_dn_data <= qnice_dev_data_i(7 downto 0);
+
+            if qnice_dev_ce_i = '1' and qnice_dev_we_i = '1' then
+               qnice_dn_wr <= '1';
+            end if;
+
+
+         when others =>
+            null;
+
       end case;
-      
+
+
+      -- Never write while QNICE is in reset
       if qnice_rst_i = '1' then
-        qnice_dn_wr <= '0';
+         qnice_dn_wr <= '0';
       end if;
-      
+
    end process core_specific_devices;
 
    ---------------------------------------------------------------------------------------------

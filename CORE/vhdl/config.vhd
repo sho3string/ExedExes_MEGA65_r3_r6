@@ -79,7 +79,7 @@ constant SCR_WELCOME : string :=
    "ExedExes V0.5.0\n" &
    "---------------\n" &   
    "\n" &
-   "MiSTer port by Muse in 2024-26\n\n" &
+   "MiSTer port by Muse in 2026\n\n" &
 
    -- We are not insisting. But it would be nice if you gave us credit for MiSTer2MEGA65 by leaving these lines in
    "MiSTer2MEGA65 Ver 2.0.1\n"     &
@@ -318,7 +318,7 @@ constant OPTM_S_SAVING     : string := "<Saving>";          -- the internal writ
 --             Do use a lower case \n. If you forget one of them or if you use upper case, you will run into undefined behavior.
 --          2. Start each line that contains an actual menu item (multi- or single-select) with a Space character,
 --             otherwise you will experience visual glitches.
-constant OPTM_SIZE         : natural := 52;  -- amount of items including empty lines:
+constant OPTM_SIZE         : natural := 55;  -- amount of items including empty lines:
                                              -- needs to be equal to the number of lines in OPTM_ITEMS and amount of items in OPTM_GROUPS
                                              -- IMPORTANT: If SAVE_SETTINGS is true and OPTM_SIZE changes: Make sure to re-generate and
                                              -- and re-distribute the config file. You can make a new one using M2M/tools/make_config.sh
@@ -344,7 +344,10 @@ constant OPTM_ITEMS        : string :=
    " 720p 60 Hz 16:9\n"     &
    " 576p 50 Hz 4:3\n"      &
    " 576p 50 Hz 5:4\n"      &
-    "\n"                    &
+   " 640x480 60 Hz\n"       &
+   " 720p 59.94 Hz 16:9\n"  &
+   " SVGA 800x600 60 Hz\n"  &
+   "\n"                     &
    " Back to main menu\n"   &
    " VGA: %s\n"             &
    " VGA Display Mode\n"    &
@@ -360,23 +363,23 @@ constant OPTM_ITEMS        : string :=
    "\n"                     &
    " Game Setup\n"          &
    "\n"                     & 
-   " DSW A & B & C\n"       &
-   "    Lives A \n"         &
-   "    Lives B \n"         &
-   "    Coin A - 1\n"       &
-   "    Coin A - 2\n"       &
-   "    Demo Sounds\n"      &
-   "    Unused\n"           &
-   "    Coin B - 1\n"       &
-   "    Coin B - 2\n"       &
-   "    Service Mode\n"     &
-   "    Difficulty A\n"     &
-   "    Difficulty B\n"     &
-   "    Difficulty C\n"     &
-   "    Round Advance\n"    &
-   "    Bonus Life A\n"     &
-   "    Bonus Life B\n"     &
-   "    Bonus Life C\n"     &
+   " DSW A & B\n"           &
+   " SW1-1  Service Mode \n"&
+   " SW1-2  Freeze\n"       &
+   " SW1-3  Language\n"     &
+   " SW1-4  2 Players\n"    &
+   " SW1-5  Lives A\n"      &
+   " SW1-6  Lives B\n"      &
+   " SW1-7  Bonus Life A\n" &
+   " SW1-8  Bonus Life B\n" &
+   " SW2-1  Demo Sounds\n"  &
+   " SW2-2  Continue\n"     &
+   " SW2-3  Coin B\n"       &
+   " SW2-4  Coin B\n"       &
+   " SW2-5  Coin B\n"       &
+   " SW2-6  Coin A\n"       &
+   " SW2-7  Coin A\n"       &
+   " SW2-8  Coin A\n"       &
    "\n"                     &
    " Back to main menu\n"   &
    "\n"                     &
@@ -438,15 +441,18 @@ constant OPTM_GROUPS       : OPTM_GTYPE := ( OPTM_G_TEXT + OPTM_G_HEADLINE,     
                                              OPTM_G_LINE,                                               -- Line
                                              OPTM_G_ROT90 + OPTM_G_SINGLESEL + OPTM_G_STDSEL,           -- Rotate On/Off toggle ("Single Select")
                                              OPTM_G_CRT   + OPTM_G_SINGLESEL + OPTM_G_STDSEL,           -- CRT emulation On/Off toggle ("Single Select")
-                                             OPTM_G_SUBMENU,                                            -- HDMI Settings Submenu start
-                                             OPTM_G_TEXT + OPTM_G_HEADLINE,                             -- HDMI Settings
-                                             OPTM_G_LINE,                                               -- Line
-                                             OPTM_G_HDMI,                                               -- 720p 50 Hz 16:9, selected by default
-                                             OPTM_G_HDMI + OPTM_G_STDSEL,                               -- 720p 60 Hz 16:9
-                                             OPTM_G_HDMI,                                               -- 576p 50 Hz 4:3
-                                             OPTM_G_HDMI,                                               -- 576p 50 Hz 5:4
-                                             OPTM_G_LINE,                                               -- Line
-                                             OPTM_G_CLOSE + OPTM_G_SUBMENU,                             -- Close submenu / back to main menus
+                                             OPTM_G_SUBMENU,
+                                             OPTM_G_TEXT + OPTM_G_HEADLINE,
+                                             OPTM_G_LINE,
+                                             OPTM_G_HDMI,                   -- 720p 50 Hz 16:9
+                                             OPTM_G_HDMI + OPTM_G_STDSEL,   -- 720p 60 Hz 16:9
+                                             OPTM_G_HDMI,                   -- 576p 50 Hz 4:3
+                                             OPTM_G_HDMI,                   -- 576p 50 Hz 5:4
+                                             OPTM_G_HDMI,                   -- 640x480 60 Hz
+                                             OPTM_G_HDMI,                   -- 720p 59.94 Hz 16:9
+                                             OPTM_G_HDMI,                   -- SVGA 800x600 60 Hz
+                                             OPTM_G_LINE,
+                                             OPTM_G_CLOSE + OPTM_G_SUBMENU,
                                              OPTM_G_SUBMENU,
                                              OPTM_G_HEADLINE,
                                              OPTM_G_LINE,

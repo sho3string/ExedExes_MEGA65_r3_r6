@@ -30,29 +30,34 @@ constant C_MENU_HDMI_16_9_50  : natural := 11;
 constant C_MENU_HDMI_16_9_60  : natural := 12;
 constant C_MENU_HDMI_4_3_50   : natural := 13;
 constant C_MENU_HDMI_5_4_50   : natural := 14;
+constant C_MENU_HDMI_640_60   : natural := 15;
+constant C_MENU_HDMI_720_5994 : natural := 16;
+constant C_MENU_SVGA_800_60   : natural := 17;
 
-constant C_MENU_VGA_STD       : natural := 20;
-constant C_MENU_VGA_15KHZHSVS : natural := 24;
-constant C_MENU_VGA_15KHZCS   : natural := 25;
+
+constant C_MENU_VGA_STD       : natural := 23;
+constant C_MENU_VGA_15KHZHSVS : natural := 27;
+constant C_MENU_VGA_15KHZCS   : natural := 28;
+
 -- Exed Exes DIP SW1
-constant C_MENU_SW1_0         : natural := 32;
-constant C_MENU_SW1_1         : natural := 33;
-constant C_MENU_SW1_2         : natural := 34;
-constant C_MENU_SW1_3         : natural := 35;
-constant C_MENU_SW1_4         : natural := 36;
-constant C_MENU_SW1_5         : natural := 37;
-constant C_MENU_SW1_6         : natural := 38;
-constant C_MENU_SW1_7         : natural := 39;
+constant C_MENU_SW1_0         : natural := 35;
+constant C_MENU_SW1_1         : natural := 36;
+constant C_MENU_SW1_2         : natural := 37;
+constant C_MENU_SW1_3         : natural := 38;
+constant C_MENU_SW1_4         : natural := 39;
+constant C_MENU_SW1_5         : natural := 40;
+constant C_MENU_SW1_6         : natural := 41;
+constant C_MENU_SW1_7         : natural := 42;
 
 -- Exed Exes DIP SW2
-constant C_MENU_SW2_0         : natural := 40;
-constant C_MENU_SW2_1         : natural := 41;
-constant C_MENU_SW2_2         : natural := 42;
-constant C_MENU_SW2_3         : natural := 43;
-constant C_MENU_SW2_4         : natural := 44;
-constant C_MENU_SW2_5         : natural := 45;
-constant C_MENU_SW2_6         : natural := 46;
-constant C_MENU_SW2_7         : natural := 47;
+constant C_MENU_SW2_0         : natural := 43;
+constant C_MENU_SW2_1         : natural := 44;
+constant C_MENU_SW2_2         : natural := 45;
+constant C_MENU_SW2_3         : natural := 46;
+constant C_MENU_SW2_4         : natural := 47;
+constant C_MENU_SW2_5         : natural := 48;
+constant C_MENU_SW2_6         : natural := 49;
+constant C_MENU_SW2_7         : natural := 50;
 
 ----------------------------------------------------------------------------------------------------------
 -- QNICE Firmware
@@ -178,46 +183,56 @@ constant C_CRTROMS_MAN           : crtrom_buf_array := ( x"EEEE", x"EEEE",
 --               b) Don't forget to zero-terminate each of your substrings of C_CRTROMS_AUTO_NAMES by adding "& ENDSTR;"
 --               c) Don't forget to finish the C_CRTROMS_AUTO array with x"EEEE"
 
-constant C_DEV_GAL_CPU_ROM1           : std_logic_vector(15 downto 0) := x"0100";     -- GALAGA CPU1 ROM 
-constant C_DEV_GAL_CPU_ROM2           : std_logic_vector(15 downto 0) := x"0101";     -- GALAGA CPU2 ROM 
-constant C_DEV_GAL_CPU_ROM3           : std_logic_vector(15 downto 0) := x"0102";     -- GALAGA CPU3 ROM 
-constant C_DEV_GAL_GFX1               : std_logic_vector(15 downto 0) := x"0103";     -- GALAGA BG GFX
-constant C_DEV_GAL_GFX2               : std_logic_vector(15 downto 0) := x"0104";     -- GALAGA SPRITE GFX
-constant C_DEV_GAL_MCU1               : std_logic_vector(15 downto 0) := x"0105";     -- MCU1 - 51xx
-constant C_DEV_GAL_MCU2               : std_logic_vector(15 downto 0) := x"0106";     -- MCU2 - 54XX
+constant C_DEV_EXED_MAIN            : std_logic_vector(15 downto 0) := x"0100";
+constant C_DEV_EXED_SOUND           : std_logic_vector(15 downto 0) := x"0101";
+constant C_DEV_EXED_MAP1            : std_logic_vector(15 downto 0) := x"0102";
+constant C_DEV_EXED_MAP2            : std_logic_vector(15 downto 0) := x"0103";
+constant C_DEV_EXED_CHAR            : std_logic_vector(15 downto 0) := x"0104";
+constant C_DEV_EXED_SCR1            : std_logic_vector(15 downto 0) := x"0105";
+constant C_DEV_EXED_SCR2            : std_logic_vector(15 downto 0) := x"0106";
+constant C_DEV_EXED_OBJ             : std_logic_vector(15 downto 0) := x"0107";
+constant C_DEV_EXED_IRQ             : std_logic_vector(15 downto 0) := x"0108";
+constant C_DEV_EXED_PROM            : std_logic_vector(15 downto 0) := x"0109";
 
--- GALAGA core specific ROMs
-constant ROM1_MAIN_CPU_ROM            : string  := "arcade/galaga/rom1.rom" & ENDSTR; -- z80 cpu 1
-constant ROM2_SUB_CPU_ROM             : string  := "arcade/galaga/rom2.rom" & ENDSTR; -- z80 sub cpu
-constant ROM3_SND_CPU_ROM             : string  := "arcade/galaga/rom3.rom" & ENDSTR; -- z80 snd cpu
-constant GFX1_BG_ROM                  : string  := "arcade/galaga/gfx1.rom" & ENDSTR; -- bg layer shapes
-constant GFX2_FG_ROM                  : string  := "arcade/galaga/gfx2.rom" & ENDSTR; -- sprite shapes
-constant NAMCO51XX_MCU_ROM            : string  := "arcade/galaga/51xx.bin" & ENDSTR; -- 51xx mcu
-constant NAMCO54XX_MCU_ROM            : string  := "arcade/galaga/54xx.bin" & ENDSTR; -- 54xx mcu
+-- Exed Exes prepared ROMs
+constant EXED_MAIN_ROM              : string := "arcade/exedexes/exed_main.rom"  & ENDSTR;
+constant EXED_SOUND_ROM             : string := "arcade/exedexes/exed_sound.rom" & ENDSTR;
+constant EXED_MAP1_ROM              : string := "arcade/exedexes/exed_map1.rom"  & ENDSTR;
+constant EXED_MAP2_ROM              : string := "arcade/exedexes/exed_map2.rom"  & ENDSTR;
+constant EXED_CHAR_ROM              : string := "arcade/exedexes/exed_char.rom"  & ENDSTR;
+constant EXED_SCR1_ROM              : string := "arcade/exedexes/exed_scr1.rom"  & ENDSTR;
+constant EXED_SCR2_ROM              : string := "arcade/exedexes/exed_scr2.rom"  & ENDSTR;
+constant EXED_OBJ_ROM               : string := "arcade/exedexes/exed_obj.rom"   & ENDSTR;
+constant EXED_IRQ_ROM               : string := "arcade/exedexes/exed_irq.rom"   & ENDSTR;
+constant EXED_PROM_ROM              : string := "arcade/exedexes/exed_prom.rom"  & ENDSTR;
 
-constant CPU_ROM1_MAIN_START          : std_logic_vector(15 downto 0) := X"0000";
-constant CPU_ROM2_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM1_MAIN_START + ROM1_MAIN_CPU_ROM'length;
-constant CPU_ROM3_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM2_MAIN_START + ROM2_SUB_CPU_ROM'length;
-constant GFX1_MAIN_START              : std_logic_vector(15 downto 0) := CPU_ROM3_MAIN_START + ROM3_SND_CPU_ROM'length;
-constant GFX2_MAIN_START              : std_logic_vector(15 downto 0) := GFX1_MAIN_START + GFX1_BG_ROM'length;
-constant MCU1_MAIN_START              : std_logic_vector(15 downto 0) := GFX2_MAIN_START + GFX2_FG_ROM'length;
-constant MCU2_MAIN_START              : std_logic_vector(15 downto 0) := MCU1_MAIN_START + NAMCO51XX_MCU_ROM'length;
+constant EXED_MAIN_NAME_START       : std_logic_vector(15 downto 0) := x"0000";
+constant EXED_SOUND_NAME_START      : std_logic_vector(15 downto 0) := EXED_MAIN_NAME_START  + EXED_MAIN_ROM'length;
+constant EXED_MAP1_NAME_START       : std_logic_vector(15 downto 0) := EXED_SOUND_NAME_START + EXED_SOUND_ROM'length;
+constant EXED_MAP2_NAME_START       : std_logic_vector(15 downto 0) := EXED_MAP1_NAME_START  + EXED_MAP1_ROM'length;
+constant EXED_CHAR_NAME_START       : std_logic_vector(15 downto 0) := EXED_MAP2_NAME_START  + EXED_MAP2_ROM'length;
+constant EXED_SCR1_NAME_START       : std_logic_vector(15 downto 0) := EXED_CHAR_NAME_START  + EXED_CHAR_ROM'length;
+constant EXED_SCR2_NAME_START       : std_logic_vector(15 downto 0) := EXED_SCR1_NAME_START  + EXED_SCR1_ROM'length;
+constant EXED_OBJ_NAME_START        : std_logic_vector(15 downto 0) := EXED_SCR2_NAME_START  + EXED_SCR2_ROM'length;
+constant EXED_IRQ_NAME_START        : std_logic_vector(15 downto 0) := EXED_OBJ_NAME_START   + EXED_OBJ_ROM'length;
+constant EXED_PROM_NAME_START       : std_logic_vector(15 downto 0) := EXED_IRQ_NAME_START   + EXED_IRQ_ROM'length;
 
--- M2M framework constants
-constant C_CRTROMS_AUTO_NUM      : natural := 7;                                       -- Amount of automatically loadable ROMs and carts, if more tha    n 3: also adjust CRTROM_MAN_MAX in M2M/rom/shell_vars.asm, Needs to be in sync with config.vhd. Maximum is 16
-constant C_CRTROMS_AUTO_NAMES    : string  := ROM1_MAIN_CPU_ROM & ROM2_SUB_CPU_ROM &
-                                              ROM3_SND_CPU_ROM & GFX1_BG_ROM & GFX2_FG_ROM &
-                                              NAMCO51XX_MCU_ROM & NAMCO54XX_MCU_ROM &
-                                              ENDSTR;
-constant C_CRTROMS_AUTO          : crtrom_buf_array := ( 
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_CPU_ROM1, C_CRTROMTYPE_MANDATORY, CPU_ROM1_MAIN_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_CPU_ROM2, C_CRTROMTYPE_MANDATORY, CPU_ROM2_MAIN_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_CPU_ROM3, C_CRTROMTYPE_MANDATORY, CPU_ROM3_MAIN_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_GFX1,     C_CRTROMTYPE_MANDATORY, GFX1_MAIN_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_GFX2,     C_CRTROMTYPE_MANDATORY, GFX2_MAIN_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_MCU1,     C_CRTROMTYPE_MANDATORY, MCU1_MAIN_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_GAL_MCU2,     C_CRTROMTYPE_MANDATORY, MCU2_MAIN_START,
-                                                         x"EEEE");                     -- Always finish the array using x"EEEE"
+constant C_CRTROMS_AUTO_NUM         : natural := 10;
+constant C_CRTROMS_AUTO_NAMES       : string := EXED_MAIN_ROM & EXED_SOUND_ROM & EXED_MAP1_ROM & EXED_MAP2_ROM &
+                                                EXED_CHAR_ROM & EXED_SCR1_ROM & EXED_SCR2_ROM & EXED_OBJ_ROM &
+                                                EXED_IRQ_ROM & EXED_PROM_ROM & ENDSTR;
+constant C_CRTROMS_AUTO             : crtrom_buf_array := (
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_MAIN,  C_CRTROMTYPE_MANDATORY, EXED_MAIN_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_SOUND, C_CRTROMTYPE_MANDATORY, EXED_SOUND_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_MAP1,  C_CRTROMTYPE_MANDATORY, EXED_MAP1_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_MAP2,  C_CRTROMTYPE_MANDATORY, EXED_MAP2_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_CHAR,  C_CRTROMTYPE_MANDATORY, EXED_CHAR_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_SCR1,  C_CRTROMTYPE_MANDATORY, EXED_SCR1_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_SCR2,  C_CRTROMTYPE_MANDATORY, EXED_SCR2_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_OBJ,   C_CRTROMTYPE_MANDATORY, EXED_OBJ_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_IRQ,   C_CRTROMTYPE_MANDATORY, EXED_IRQ_NAME_START,
+   C_CRTROMTYPE_DEVICE, C_DEV_EXED_PROM,  C_CRTROMTYPE_MANDATORY, EXED_PROM_NAME_START,
+   x"EEEE");
 
 
 ----------------------------------------------------------------------------------------------------------
