@@ -8,6 +8,7 @@
 module jtcommnd_main(
     input              rst,
     input              clk,
+    input              prog_clk,
     input              cen6,   // 6MHz
     input              cen3    /* synthesis direct_enable = 1 */,   // 3MHz
     output             cpu_cen,
@@ -385,6 +386,7 @@ jtframe_z80wait u_wait(
     .gate       (           )
 );
 
+/*
 jtframe_prom #(.AW(8),.DW(4),.SIMFILE("../../../rom/commando/vtb5.6l")) u_vprom(
     .clk    ( clk          ),
     .cen    ( cen6         ),
@@ -393,6 +395,17 @@ jtframe_prom #(.AW(8),.DW(4),.SIMFILE("../../../rom/commando/vtb5.6l")) u_vprom(
     .rd_addr( V[7:0]       ),
     .we     ( prom_6l_we   ),
     .q      ( int_ctrl     )
+);*/
+
+mega65_prom #(.AW(8),.DW(4)) u_vprom(
+    .clk     ( clk          ),
+    .cen     ( cen6         ),
+    .prog_clk( prog_clk     ),
+    .data    ( prog_din     ),
+    .wr_addr ( prog_addr    ),
+    .rd_addr ( V[7:0]       ),
+    .we      ( prom_6l_we   ),
+    .q       ( int_ctrl     )
 );
 
 reg int_n;

@@ -24,21 +24,23 @@ entity dualport_2clk_ram is
        FALLING_B      : boolean := false         -- ditto clock b
    );
    port
-   (
-      clock_a         : in  std_logic := '0';
-      address_a       : in  std_logic_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
-      do_latch_addr_a : in  std_logic := '0';
-      data_a          : in  std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
-      wren_a          : in  std_logic := '0';
-      q_a             : out std_logic_vector(DATA_WIDTH-1 downto 0);
-
-      clock_b         : in  std_logic := '0';
-      address_b       : in  std_logic_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
-      do_latch_addr_b : in  std_logic := '0';
-      data_b          : in  std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
-      wren_b          : in  std_logic := '0';
-      q_b             : out std_logic_vector(DATA_WIDTH-1 downto 0)
-   );
+    (
+       clock_a         : in  std_logic := '0';
+       clen_a          : in  std_logic := '1';
+       address_a       : in  std_logic_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
+       do_latch_addr_a : in  std_logic := '0';
+       data_a          : in  std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
+       wren_a          : in  std_logic := '0';
+       q_a             : out std_logic_vector(DATA_WIDTH-1 downto 0);
+    
+       clock_b         : in  std_logic := '0';
+       clen_b          : in  std_logic := '1';
+       address_b       : in  std_logic_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
+       do_latch_addr_b : in  std_logic := '0';
+       data_b          : in  std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
+       wren_b          : in  std_logic := '0';
+       q_b             : out std_logic_vector(DATA_WIDTH-1 downto 0)
+    );
 end entity dualport_2clk_ram;
 
 architecture beh of dualport_2clk_ram is
@@ -110,13 +112,13 @@ begin
       )
       port map (
          clock_a   => clock_a xor to_stdlogic(FALLING_A),
-         clen_a    => '1',
+         clen_a    => clen_a,
          address_a => address_a_int,
          data_a    => data_a,
          wren_a    => wren_a,
          q_a       => q_a,
          clock_b   => clock_b xor to_stdlogic(FALLING_B),
-         clen_b    => '1',
+         clen_b    => clen_b,
          address_b => address_b_int,
          data_b    => data_b,
          wren_b    => wren_b,
@@ -124,4 +126,3 @@ begin
       ); -- i_tdp_ram
 
 end architecture beh;
-

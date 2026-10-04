@@ -29,6 +29,7 @@ module jtgng_obj #(
 ) (
     input               rst,
     input               clk,
+    input               prog_clk,
     input               dma_cen,   // use same as original PCB
     input               draw_cen,  // make it faster than original
     input               pxl_cen,   // use same as original PCB
@@ -160,6 +161,7 @@ jtgng_objdraw #(
 u_draw(
     .rst            ( rst           ),
     .clk            ( clk           ),
+    .prog_clk       ( prog_clk      ),
     .cen            ( draw_cen      ),
     .OBJON          ( OBJON         ),
     // screen

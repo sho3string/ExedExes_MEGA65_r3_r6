@@ -30,6 +30,7 @@ module jtgng_char #(parameter
     SIMID    = 0    // char_lo/hi.bin for simulation files
 ) (
     input            clk,
+    input            prog_clk,
     input            pxl_cen  /* synthesis direct_enable = 1 */,
     input  [ABW-1:0] AB,
     input     [ 7:0] V, // V128-V1
@@ -196,6 +197,8 @@ generate
     end else begin
         wire [7:0] colour_addr = { {6-PALW{1'b0}}, char_pal, char_col };
         wire [3:0] prom_data;
+        
+        /*
         jtframe_prom #(.AW(8),.DW(4),.SIMFILE(PALETTE_SIMFILE)) u_vprom(
             .clk    ( clk            ),
             .cen    ( pxl_cen        ),
@@ -205,6 +208,19 @@ generate
             .we     ( prom_we        ),
             .q      ( prom_data      )
         );
+        */
+        mega65_prom #(.AW(8),.DW(4),.SIMFILE(PALETTE_SIMFILE)) u_vprom(
+            .clk    ( clk            ),
+            .prog_clk( prog_clk      ),
+            .cen    ( pxl_cen        ),
+            .data   ( prog_din       ),
+            .rd_addr( colour_addr    ),
+            .wr_addr( prog_addr      ),
+            .we     ( prom_we        ),
+            .q      ( prom_data      )
+        );     
+        
+        
         always @(*) char_pxl = char_on ? prom_data : {PXLW{1'b1}};
     end
 endgenerate

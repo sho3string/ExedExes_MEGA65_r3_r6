@@ -6,6 +6,7 @@
 module jtexed_colmix(
     input           rst,
     input           clk,
+    input           prog_clk,
     input           pxl_cen,
     // pixel input from generator modules
     input [3:0]     char_pxl,        // character color code
@@ -77,7 +78,7 @@ jtframe_blank #(.DLY(BLANK_DLY),.DW(12)) u_dly(
 // priority PROM
 wire prio_we = prom_prio_we && prog_addr[7:5]==0;
 
-jtframe_prom #(.AW(5),.DW(8)) u_prio(
+/*jtframe_prom #(.AW(5),.DW(8)) u_prio(
     .clk    ( clk            ),
     .cen    ( 1'b1           ),
     .data   ( prom_din       ),
@@ -111,6 +112,51 @@ jtframe_prom #(.AW(8),.DW(4)) u_green(
 jtframe_prom #(.AW(8),.DW(4)) u_blue(
     .clk    ( clk            ),
     .cen    ( pxl_cen        ),
+    .data   ( prom_din[3:0]  ),
+    .rd_addr( pxl_mux        ),
+    .wr_addr( prog_addr      ),
+    .we     ( prom_rgb_we[2] ),
+    .q      ( pre_b          )
+);*/
+
+mega65_prom #(.AW(5),.DW(8)) u_prio(
+    .clk    ( clk            ),
+    .cen    ( 1'b1           ),
+    .prog_clk( prog_clk      ),
+    .data   ( prom_din       ),
+    .rd_addr( prio_addr      ),
+    .wr_addr( prog_addr[4:0] ),
+    .we     ( prio_we        ),
+    .q      ( prio_sel       )
+);
+
+// palette ROM
+mega65_prom #(.AW(8),.DW(4)) u_red(
+    .clk    ( clk            ),
+    .cen    ( pxl_cen        ),
+    .prog_clk( prog_clk      ),
+    .data   ( prom_din[3:0]  ),
+    .rd_addr( pxl_mux        ),
+    .wr_addr( prog_addr      ),
+    .we     ( prom_rgb_we[0] ),
+    .q      ( pre_r          )
+);
+
+mega65_prom #(.AW(8),.DW(4)) u_green(
+    .clk    ( clk            ),
+    .cen    ( pxl_cen        ),
+    .prog_clk( prog_clk      ),
+    .data   ( prom_din[3:0]  ),
+    .rd_addr( pxl_mux        ),
+    .wr_addr( prog_addr      ),
+    .we     ( prom_rgb_we[1] ),
+    .q      ( pre_g          )
+);
+
+mega65_prom #(.AW(8),.DW(4)) u_blue(
+    .clk    ( clk            ),
+    .cen    ( pxl_cen        ),
+    .prog_clk( prog_clk      ),
     .data   ( prom_din[3:0]  ),
     .rd_addr( pxl_mux        ),
     .wr_addr( prog_addr      ),

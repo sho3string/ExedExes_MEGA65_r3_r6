@@ -173,13 +173,12 @@ signal pre_addr    : std_logic_vector(25 downto 0);
 signal post_addr   : std_logic_vector(25 downto 0);
 
 
-
 -- Offer some keyboard controls in addition to Joy 1 Controls
-constant m65_1     : integer := 56; --Player 1 Start
-constant m65_2     : integer := 59; --Player 2 Start
-constant m65_5     : integer := 16; --Insert coin 1
-constant m65_6     : integer := 19; --Insert coin 2
-constant m65_9     : integer := 32; --Service button
+constant m65_1          : integer := 56; --Player 1 Start
+constant m65_2          : integer := 59; --Player 2 Start
+constant m65_5          : integer := 16; --Insert coin 1
+constant m65_6          : integer := 19; --Insert coin 2
+constant m65_9          : integer := 32; --Service button
 
 constant m65_up_crsr    : integer := 73; --Player up
 constant m65_vert_crsr  : integer := 7;  --Player down
@@ -279,12 +278,15 @@ begin
     scr2_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="11" else '0';
     obj_we0  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='0' else '0';
     obj_we1  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='1' else '0';
+   
 
     map2_data <= map2_q1 & map2_q0;
     char_data <= char_q1 & char_q0;
     scr1_data <= scr1_q3 & scr1_q2 & scr1_q1 & scr1_q0;
     scr2_data <= scr2_q3 & scr2_q2 & scr2_q1 & scr2_q0;
     obj_data  <= obj_q1 & obj_q0;
+        
+    
 
     -- Synchronous BRAMs return the requested word one main clock later.
     -- Hold *_ok low for the first cycle after an address change.
@@ -313,24 +315,24 @@ begin
 
     -- SW1
     ee_dipsw_a <= not (
-    osm_control_i(C_MENU_SW1_7) &
-    osm_control_i(C_MENU_SW1_6) &
-    osm_control_i(C_MENU_SW1_5) &
-    osm_control_i(C_MENU_SW1_4) &
-    osm_control_i(C_MENU_SW1_3) &
-    osm_control_i(C_MENU_SW1_2) &
+    osm_control_i(C_MENU_SW1_0) &
     osm_control_i(C_MENU_SW1_1) &
-    osm_control_i(C_MENU_SW1_0));
+    osm_control_i(C_MENU_SW1_2) &
+    osm_control_i(C_MENU_SW1_3) &
+    osm_control_i(C_MENU_SW1_4) &
+    osm_control_i(C_MENU_SW1_5) &
+    osm_control_i(C_MENU_SW1_6) &
+    osm_control_i(C_MENU_SW1_7));
     
     ee_dipsw_b <= not (
-    osm_control_i(C_MENU_SW2_7) &
-    osm_control_i(C_MENU_SW2_6) &
-    osm_control_i(C_MENU_SW2_5) &
-    osm_control_i(C_MENU_SW2_4) &
-    osm_control_i(C_MENU_SW2_3) &
-    osm_control_i(C_MENU_SW2_2) &
+    osm_control_i(C_MENU_SW2_0) &
     osm_control_i(C_MENU_SW2_1) &
-    osm_control_i(C_MENU_SW2_0));
+    osm_control_i(C_MENU_SW2_2) &
+    osm_control_i(C_MENU_SW2_3) &
+    osm_control_i(C_MENU_SW2_4) &
+    osm_control_i(C_MENU_SW2_5) &
+    osm_control_i(C_MENU_SW2_6) &
+    osm_control_i(C_MENU_SW2_7));
     
     ee_dipsw <=  x"0000" & ee_dipsw_b & ee_dipsw_a;
     ee_cab_1p(0) <= keyboard_n(m65_1); -- 1P Start
@@ -367,6 +369,7 @@ begin
    port map (
       -- Clock / reset
       clk         => clk_main_i,
+      prog_clk    => dn_clk_i,
       rst         => reset,
 
       -- Cabinet inputs
@@ -379,7 +382,7 @@ begin
       -- DIP switches
       dipsw       => ee_dipsw,
       dip_pause   => keyboard_n(m65_capslock),-- '1',     -- pause is active low, active high run
-      dip_flip    => '1',                     -- active low flip screen
+      dip_flip    => '1',                      -- active low flip screen
 
       -- Debug / layer controls
       gfx_en      => "1111",
@@ -453,7 +456,7 @@ begin
       prog_addr   => prog_addr,
       prog_data   => prog_data,
       prom_we     => prom_we,
-
+     
       pre_addr    => pre_addr,
       post_addr   => post_addr
    );
@@ -494,9 +497,284 @@ begin
    -- Exed Exes ROM BRAMs. Port A = 48 MHz core read, Port B = QNICE write.
    -- Wide JTFRAME buses are assembled from byte lanes.
    -- ----------------------------------------------------------------------
+    
 
-   
+   i_rom_main : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 17, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map 
+      (clock_a => clk_main_i, 
+      address_a => main_addr, 
+      data_a => (others=>'0'), 
+      wren_a => '0', 
+      q_a => main_data,
 
+      clock_b => dn_clk_i, 
+      address_b => dl_main_off(16 downto 0), 
+      data_b => dn_data_i, 
+      wren_b => main_we, 
+      q_b => open);
+
+
+   i_rom_snd : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map 
+      (clock_a => clk_main_i, 
+      address_a => snd_addr, 
+      data_a => (others=>'0'), 
+      wren_a => '0', 
+      q_a => snd_data,
+
+      clock_b => dn_clk_i,
+      address_b => dl_snd_off(14 downto 0), 
+      data_b => dn_data_i, 
+      wren_b => snd_we, 
+      q_b => open);
+
+
+   i_rom_map1 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map 
+      (clock_a => clk_main_i, 
+      address_a => map1_addr, 
+      data_a => (others=>'0'), 
+      wren_a => '0', 
+      q_a => map1_data,
+
+      clock_b => dn_clk_i, 
+      address_b => dl_map1_off(13 downto 0), 
+      data_b => dn_data_i, 
+      wren_b => map1_we, 
+      q_b => open);
+
+
+   i_rom_map2_0 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 13, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => map2_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => map2_q0,
+
+      clock_b => dn_clk_i,
+      address_b => dl_map2_off(13 downto 1),
+      data_b => dn_data_i,
+      wren_b => map2_we0,
+      q_b => open
+      );
+
+   i_rom_map2_1 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 13, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => map2_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => map2_q1,
+
+      clock_b => dn_clk_i,
+      address_b => dl_map2_off(13 downto 1),
+      data_b => dn_data_i,
+      wren_b => map2_we1,
+      q_b => open
+      );
+
+
+   i_rom_char_0 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => char_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => char_q0,
+
+      clock_b => dn_clk_i,
+      address_b => dl_char_off(14 downto 1),
+      data_b => dn_data_i,
+      wren_b => char_we0,
+      q_b => open
+      );
+
+   i_rom_char_1 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => char_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => char_q1,
+
+      clock_b => dn_clk_i,
+      address_b => dl_char_off(14 downto 1),
+      data_b => dn_data_i,
+      wren_b => char_we1,
+      q_b => open
+      );
+
+
+   i_rom_scr1_0 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr1_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr1_q0,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr1_off(16 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr1_we0,
+      q_b => open
+      );
+
+   i_rom_scr1_1 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr1_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr1_q1,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr1_off(16 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr1_we1,
+      q_b => open
+      );
+
+   i_rom_scr1_2 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr1_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr1_q2,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr1_off(16 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr1_we2,
+      q_b => open
+      );
+
+   i_rom_scr1_3 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr1_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr1_q3,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr1_off(16 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr1_we3,
+      q_b => open
+      );
+
+
+   i_rom_scr2_0 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr2_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr2_q0,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr2_off(15 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr2_we0,
+      q_b => open
+      );
+
+   i_rom_scr2_1 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr2_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr2_q1,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr2_off(15 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr2_we1,
+      q_b => open
+      );
+
+   i_rom_scr2_2 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr2_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr2_q2,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr2_off(15 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr2_we2,
+      q_b => open
+      );
+
+   i_rom_scr2_3 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 14, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => scr2_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => scr2_q3,
+
+      clock_b => dn_clk_i,
+      address_b => dl_scr2_off(15 downto 2),
+      data_b => dn_data_i,
+      wren_b => scr2_we3,
+      q_b => open
+      );
+
+
+   i_rom_obj_0 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => obj_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => obj_q0,
+
+      clock_b => dn_clk_i,
+      address_b => dl_obj_off(15 downto 1),
+      data_b => dn_data_i,
+      wren_b => obj_we0,
+      q_b => open
+      );
+
+   i_rom_obj_1 : entity work.dualport_2clk_ram
+      generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
+      port map
+      (clock_a => clk_main_i,
+      address_a => obj_addr,
+      data_a => (others=>'0'),
+      wren_a => '0',
+      q_a => obj_q1,
+
+      clock_b => dn_clk_i,
+      address_b => dl_obj_off(15 downto 1),
+      data_b => dn_data_i,
+      wren_b => obj_we1,
+      q_b => open
+      );
+     
    i_keyboard : entity work.keyboard
       port map (
          clk_main_i           => clk_main_i,

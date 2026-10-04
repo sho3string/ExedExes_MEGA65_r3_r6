@@ -30,6 +30,7 @@ module jtgng_objdraw #(parameter
     (* direct_enable *) input cen,
     input              rst,
     input              clk,
+    input              prog_clk,
     // screen
     input       [7:0]  VF,
     input       [3:0]  pxlcnt,
@@ -272,7 +273,7 @@ generate
         wire [3:0] new_col = poshflip2 ? {w[0],x[0],y[0],z[0]} : {w[3],x[3],y[3],z[3]};
         wire [7:0] pal_addr = { objpal1[3:0], new_col };
 
-        jtframe_prom #(.AW(8),.DW(4), .SIMFILE(PALETTE1_SIMFILE) ) u_prom_msb(
+        /*jtframe_prom #(.AW(8),.DW(4), .SIMFILE(PALETTE1_SIMFILE) ) u_prom_msb(
             .clk    ( clk            ),
             .cen    ( cen            ),
             .data   ( prog_din       ),
@@ -290,6 +291,27 @@ generate
             .wr_addr( prog_addr      ),
             .we     ( prom_lo_we     ),
             .q      ( prom_dout[3:0] )
+        );*/
+        mega65_prom #(.AW(8),.DW(4)) u_prom_msb(
+            .clk     ( clk            ),
+            .cen     ( cen            ),
+            .prog_clk( prog_clk       ),
+            .data    ( prog_din       ),
+            .rd_addr ( pal_addr       ),
+            .wr_addr ( prog_addr      ),
+            .we      ( prom_hi_we     ),
+            .q       ( prom_dout[7:4] )
+        );
+        
+        mega65_prom #(.AW(8),.DW(4)) u_prom_lsb(
+            .clk     ( clk            ),
+            .cen     ( cen            ),
+            .prog_clk( prog_clk       ),
+            .data    ( prog_din       ),
+            .rd_addr ( pal_addr       ),
+            .wr_addr ( prog_addr      ),
+            .we      ( prom_lo_we     ),
+            .q       ( prom_dout[3:0] )
         );
 
         reg  [8:0] posx2;

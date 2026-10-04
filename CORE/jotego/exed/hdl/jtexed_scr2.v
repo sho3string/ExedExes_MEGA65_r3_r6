@@ -7,6 +7,7 @@ module jtexed_scr2 #(parameter
 ) (
     input             rst,
     input             clk,
+    input             prog_clk,
     input             pxl_cen,
     input      [ 8:0] V,
     input      [ 8:0] H,
@@ -100,7 +101,7 @@ assign pal_addr = { pal_bank, pal_hsb, cur_pxl };
 
 wire [7:0] prom_data;
 
-jtframe_prom #(.AW(8),.DW(4)) u_prom_l4(
+/*jtframe_prom #(.AW(8),.DW(4)) u_prom_l4(
     .clk    ( clk        ),
     .cen    ( 1'b1       ),
     .data   ( prog_din   ),
@@ -118,6 +119,29 @@ jtframe_prom #(.AW(8),.DW(4)) u_prom_l3(
     .wr_addr( prog_addr  ),
     .we     ( prom_we[1] ),
     .q      ( prom_data[7:4]  )
+);
+*/
+
+mega65_prom #(.AW(8),.DW(4)) u_prom_l4(
+    .clk     ( clk           ),
+    .cen     ( 1'b1          ),
+    .prog_clk( prog_clk      ),
+    .data    ( prog_din      ),
+    .rd_addr ( pal_addr      ),
+    .wr_addr ( prog_addr     ),
+    .we      ( prom_we[0]    ),
+    .q       ( prom_data[3:0] )
+);
+
+mega65_prom #(.AW(8),.DW(4)) u_prom_l3(
+    .clk     ( clk           ),
+    .cen     ( 1'b1          ),
+    .prog_clk( prog_clk      ),
+    .data    ( prog_din      ),
+    .rd_addr ( pal_addr      ),
+    .wr_addr ( prog_addr     ),
+    .we      ( prom_we[1]    ),
+    .q       ( prom_data[7:4] )
 );
 
 

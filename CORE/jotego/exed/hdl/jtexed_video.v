@@ -7,6 +7,7 @@ module jtexed_video #(
 )(
     input               rst,
     input               clk,
+    input               prog_clk,
     input               cen12,
     input               cen8,
     input               cen6,
@@ -127,6 +128,7 @@ jtgng_char #(
     .LAYOUT     (        LAYOUT )
 ) u_char (
     .clk        ( clk           ),
+    .prog_clk   ( prog_clk      ),
     .pxl_cen    ( cen6          ),
     .AB         ( cpu_AB[10:0]  ),
     .V          ( V[7:0]        ),
@@ -162,6 +164,7 @@ jtexed_scr1 #(
 ) u_scroll1 (
     .rst          ( rst         ),
     .clk          ( clk         ),
+    .prog_clk     ( prog_clk    ),
     .pxl_cen      ( cen6        ),
     .V            ( V           ),
     .H            ( H           ),
@@ -198,6 +201,7 @@ jtexed_scr2 #(
 ) u_scroll2 (
     .rst          ( rst         ),
     .clk          ( clk         ),
+    .prog_clk     ( prog_clk    ),
     .pxl_cen      ( cen6        ),
     .V            ( V           ),
     .H            ( H           ),
@@ -236,6 +240,7 @@ jtgng_obj #(
 ) u_obj (
     .rst        ( rst         ),
     .clk        ( clk         ),
+    .prog_clk   ( prog_clk    ),
     .draw_cen   ( cen12       ),
     .dma_cen    ( cen6        ),
     .pxl_cen    ( cen6        ),
@@ -276,6 +281,7 @@ assign obj_pxl = ~6'd0;
 jtexed_colmix u_colmix (
     .rst          ( rst           ),
     .clk          ( clk           ),
+    .prog_clk     ( prog_clk      ),
     .pxl_cen      ( cen6          ),
 
     .char_pxl     ( char_pxl      ),

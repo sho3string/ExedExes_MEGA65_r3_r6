@@ -13,6 +13,7 @@ module jtexed_game(
     // Clock / reset
     // ------------------------------------------------------------------------
     input               clk,
+    input               prog_clk,
     input               rst,
 
     // ------------------------------------------------------------------------
@@ -346,6 +347,7 @@ jtcommnd_main #(
 ) u_main(
     .rst        ( rst            ),
     .clk        ( clk            ),
+    .prog_clk   ( prog_clk       ),
 
     .cen6       ( cen6           ),
     .cen3       ( cen3           ),
@@ -470,7 +472,7 @@ jtexed_sound u_sound(
 jtexed_video u_video(
     .rst        ( rst            ),
     .clk        ( clk            ),
-
+    .prog_clk   ( prog_clk       ),
     .cen12      ( cen12          ),
     .cen8       ( cen8           ),
     .cen6       ( cen6           ),
