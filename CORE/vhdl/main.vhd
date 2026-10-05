@@ -159,6 +159,13 @@ signal prog_data   : std_logic_vector(7 downto 0);
 signal prom_we     : std_logic;
 signal pre_addr    : std_logic_vector(25 downto 0);
 signal post_addr   : std_logic_vector(25 downto 0);
+signal shoot2_button1_n : std_logic := '1';
+signal shoot2_button2_n : std_logic := '1';
+signal pot1_val    : std_logic_vector(7 downto 0);
+signal pot2_val    : std_logic_vector(7 downto 0);
+signal potxy_sw    : std_logic;
+signal pot_pol1_sw : std_logic;
+signal pot_pol2_sw : std_logic;
 
 
 -- Offer some keyboard controls in addition to Joy 1 Controls
@@ -430,6 +437,65 @@ begin
     ee_coin(0) <= keyboard_n(m65_6);   -- Coin 1
     ee_coin(1) <= keyboard_n(m65_5);   -- Coin 2
     
+    --potxy_sw    <= osm_control_i(C_MENU_SECOND_FIRE); -- 0 = POTX, 1 = POTY
+    --pot_pol1_sw <= osm_control_i(C_MENU_POTPOL_1);      -- P1: 1 = active-low, 0 = active-high
+    --pot_pol2_sw <= osm_control_i(C_MENU_POTPOL_2);      -- P2: 1 = active-low, 0 = active-high
+    
+    second_button_proc : process(all)
+    begin
+    
+       ------------------------------------------------------------------------
+       -- Select POTX/POTY for both joystick ports
+       ------------------------------------------------------------------------
+       if potxy_sw = '0' then
+          pot1_val <= pot1_x_i;
+          pot2_val <= pot2_x_i;
+       else
+          pot1_val <= pot1_y_i;
+          pot2_val <= pot2_y_i;
+       end if;
+    
+       ------------------------------------------------------------------------
+       -- Player 1 second fire
+       ------------------------------------------------------------------------
+       if pot_pol1_sw = '1' then
+    
+          -- Active-low POT button
+          if unsigned(pot1_val) < unsigned'(x"80") then
+             shoot2_button1_n <= '0';
+          else
+             shoot2_button1_n <= '1';
+          end if;
+       else
+          -- Active-high POT button
+          if unsigned(pot1_val) >= unsigned'(x"80") then
+             shoot2_button1_n <= '0';
+          else
+             shoot2_button1_n <= '1';
+          end if;
+       end if;
+       
+       -----------------------------------------------------------------------
+       -- Player 2 second fire
+       ------------------------------------------------------------------------
+       if pot_pol2_sw = '1' then
+    
+          -- Active-low POT button
+          if unsigned(pot2_val) < unsigned'(x"80") then
+             shoot2_button2_n <= '0';
+          else
+             shoot2_button2_n <= '1';
+          end if;
+       else
+          -- Active-high POT button
+          if unsigned(pot2_val) >= unsigned'(x"80") then
+             shoot2_button2_n <= '0';
+          else
+             shoot2_button2_n <= '1';
+          end if;
+       end if;
+    end process;
+    
     -- -------------------------------------------------------------------------
     -- Player 1 controls
     -- Active low
@@ -443,7 +509,7 @@ begin
     -- Button 1 = Z / joystick fire
     joystick1(4) <= joy_1_fire_n_i and keyboard_n(m65_z);
     -- Button 2 = X / second joystick button
-    joystick1(5) <=  keyboard_n(m65_x);
+    joystick1(5) <=  keyboard_n(m65_x) and shoot2_button1_n;
     
     -- Player 2 joystick - active low
     joystick2(0) <= joy_2_right_n_i;
@@ -453,7 +519,7 @@ begin
     -- Button 1 = Z / joystick fire
     joystick2(4) <= joy_2_fire_n_i;
     -- Button 2 = X / second joystick button
-    joystick2(5) <=  keyboard_n(m65_x);
+    joystick2(5) <=  keyboard_n(m65_x) and shoot2_button2_n;
    
    i_jtexed_game : entity work.jtexed_game
    port map (
