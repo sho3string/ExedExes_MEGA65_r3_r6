@@ -236,6 +236,11 @@ signal scr1_addr_d : std_logic_vector(scr1_addr'range);
 signal scr2_addr_d : std_logic_vector(scr2_addr'range);
 signal obj_addr_d  : std_logic_vector(obj_addr'range);
 
+
+-- Object ROM download address after converting the physical graphics
+-- layout into the layout expected by jtgng_objdraw.
+signal dl_obj_word : std_logic_vector(14 downto 0);
+
 begin
 
     -- Core reset
@@ -276,8 +281,20 @@ begin
     scr2_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="01" else '0';
     scr2_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="10" else '0';
     scr2_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="11" else '0';
-    obj_we0  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='0' else '0';
-    obj_we1  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='1' else '0';
+    --obj_we0  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='0' else '0';
+    --obj_we1  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='1' else '0';
+   
+    obj_we0 <= dn_wr_i
+   when unsigned(dn_addr_i) >= C_OBJ_START and
+        unsigned(dn_addr_i) <  C_PROM_START and
+        dn_addr_i(0) = '0'
+   else '0';
+
+    obj_we1 <= dn_wr_i
+   when unsigned(dn_addr_i) >= C_OBJ_START and
+        unsigned(dn_addr_i) <  C_PROM_START and
+        dn_addr_i(0) = '1'
+   else '0';
    
 
     map2_data <= map2_q1 & map2_q0;
@@ -285,7 +302,62 @@ begin
     scr1_data <= scr1_q3 & scr1_q2 & scr1_q1 & scr1_q0;
     scr2_data <= scr2_q3 & scr2_q2 & scr2_q1 & scr2_q0;
     obj_data  <= obj_q1 & obj_q0;
-        
+    
+    
+    
+    -- -------------------------------------------------------------------------
+    -- Object ROM address reordering
+    -- -------------------------------------------------------------------------
+    -- The Exed Exes sprite ROM stores each 16x16 sprite as two 8-pixel-wide
+    -- halves. Within a sprite the physical 16-bit word address is:
+    --
+    --     ID | HALF | ROW | SUBGROUP
+    --
+    -- jtgng_objdraw addresses sprite data as:
+    --
+    --     ID | ROW | HALF | SUBGROUP
+    --
+    -- Reorder the word-address bits while loading the OBJ BRAM so that its
+    -- runtime address directly matches the { ID, row, group } address generated
+    -- by jtgng_objdraw.
+    --
+    -- dn_addr_i is a byte address, so first remove C_OBJ_START and divide by 2
+    -- to obtain the 16-bit source word address.
+    --
+    -- Source:       [13:6] ID, [5] HALF, [4:1] ROW, [0] SUBGROUP
+    -- Destination:  [13:6] ID, [5:2] ROW, [1] HALF, [0] SUBGROUP
+    -- -------------------------------------------------------------------------    
+    process(all)
+       variable src : unsigned(13 downto 0);
+    begin
+       -- dn_addr_i is a BYTE address.
+       --
+       -- Remove OBJ_START and divide by two because the packed OBJ image
+       -- contains two bytes per 16-bit word.
+       src := resize(
+          (unsigned(dn_addr_i) - C_OBJ_START) srl 1,
+          src'length
+       );
+    
+       -- MAME physical layout:
+       --   src[13:6] = sprite ID
+       --   src[5]    = left/right half
+       --   src[4:1]  = row
+       --   src[0]    = 4-pixel subgroup
+       --
+       -- jtgng_objdraw layout:
+       --   dst[13:6] = sprite ID
+       --   dst[5:2]  = row
+       --   dst[1]    = left/right half
+       --   dst[0]    = subgroup
+    
+       dl_obj_word <= '0' & std_logic_vector(
+           src(13 downto 6) &
+           src(4 downto 1) &
+           src(5) &
+           src(0)
+        );
+    end process;
     
 
     -- Synchronous BRAMs return the requested word one main clock later.
@@ -743,6 +815,8 @@ begin
       );
 
 
+   -- OBJ graphics are pre-arranged during download so the runtime obj_addr
+   -- from jtgng_objdraw can be connected directly to the BRAM read ports.
    i_rom_obj_0 : entity work.dualport_2clk_ram
       generic map (ADDR_WIDTH => 15, DATA_WIDTH => 8, FALLING_A => false, FALLING_B => true)
       port map
@@ -753,7 +827,7 @@ begin
       q_a => obj_q0,
 
       clock_b => dn_clk_i,
-      address_b => dl_obj_off(15 downto 1),
+      address_b => dl_obj_word,
       data_b => dn_data_i,
       wren_b => obj_we0,
       q_b => open
@@ -769,7 +843,7 @@ begin
       q_a => obj_q1,
 
       clock_b => dn_clk_i,
-      address_b => dl_obj_off(15 downto 1),
+      address_b => dl_obj_word,
       data_b => dn_data_i,
       wren_b => obj_we1,
       q_b => open

@@ -105,24 +105,27 @@ def main():
         # tilerom is split by mem.yaml at byte $4000:
         # map1 = front tile map (8-bit), map2 = back tile map (16-bit).
         map1 = R('c01_ee07.bin')
-        map2 = permute(R('h04_ee09.bin'), map2_pre_addr)
+        map2 = R('h04_ee09.bin')
 
-        # mame2mra marks chars reverse=true. On the 16-bit runtime bus this is
-        # the byte-lane reversal performed by the JTFRAME ROM packer.
+        # mame2mra marks chars reverse=true.
         char = swap_bytes16(R('05c_ee00.bin'))
 
-        # 16x16 tiles and sprites are width=16, reverse=true, no_offset=true.
-        # Form the 16-bit plane words with the later MAME half in the low lane,
-        # matching the reverse ordering, then apply jtexed_game post_addr.
-        scr1_raw = interleave16(R('a02_ee05.bin'), R('a03_ee06.bin'))
-        scr1 = permute(scr1_raw, post_addr_16)
+        # 16x16 tiles
+        scr1 = interleave16(
+        R('a02_ee05.bin'),
+        R('a03_ee06.bin')
+       
+        )
 
-        # 32x32 tile ROM is a single byte stream on a 32-bit runtime bus.
-        # jtexed_game applies the SCR2 pre-address permutation during download.
-        scr2 = permute(R('h01_ee08.bin'), scr2_pre_addr)
+        # 32x32 tiles
+        scr2 = R('h01_ee08.bin')
 
-        obj_raw = interleave16(R('j12_ee11.bin'), R('j11_ee10.bin'))
-        obj = permute(obj_raw, post_addr_16)
+        # sprites
+        obj = interleave16(
+        R('j12_ee11.bin'),
+        R('j11_ee10.bin')
+        )
+        
 
         irq = R('06l_e-06.bin')
         # PROM order is exactly MAME/JTEXED programming order after IRQ PROM.
@@ -155,5 +158,6 @@ def main():
             f.write(f'{name:8s} offset=${off:06X} size=${size:06X} end=${off+size-1:06X}\n')
     print('\nM2M aggregate layout:')
     print((out/'layout.txt').read_text(), end='')
+   
 
 if __name__=='__main__': main()
