@@ -241,6 +241,10 @@ signal obj_addr_d  : std_logic_vector(obj_addr'range);
 -- layout into the layout expected by jtgng_objdraw.
 signal dl_obj_word : std_logic_vector(14 downto 0);
 
+-- Scroll 1 ROM download address after converting the physical 16x16
+-- graphics layout into the layout expected by jtexed_scr1.
+signal dl_scr1_word : std_logic_vector(14 downto 0);
+
 begin
 
     -- Core reset
@@ -273,28 +277,25 @@ begin
     char_we0 <= dn_wr_i when unsigned(post_addr) >= C_CHAR_START and unsigned(post_addr) < C_SCR1_START and post_addr(0)='0' else '0';
     char_we1 <= dn_wr_i when unsigned(post_addr) >= C_CHAR_START and unsigned(post_addr) < C_SCR1_START and post_addr(0)='1' else '0';
 
-    scr1_we0 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="00" else '0';
-    scr1_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="01" else '0';
-    scr1_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="10" else '0';
-    scr1_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="11" else '0';
+    --scr1_we0 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="00" else '0';
+    --scr1_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="01" else '0';
+    --scr1_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="10" else '0';
+    --scr1_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="11" else '0';
+    
+    -- SCR1 byte lanes come directly from the original download byte address.
+    -- Address reordering is performed on the 32-bit word address above.
+    scr1_we0 <= dn_wr_i when unsigned(dn_addr_i) >= C_SCR1_START and unsigned(dn_addr_i) <  C_SCR2_START and dn_addr_i(1 downto 0) = "00" else '0';
+    scr1_we1 <= dn_wr_i when unsigned(dn_addr_i) >= C_SCR1_START and unsigned(dn_addr_i) <  C_SCR2_START and dn_addr_i(1 downto 0) = "01" else '0';    
+    scr1_we2 <= dn_wr_i when unsigned(dn_addr_i) >= C_SCR1_START and  unsigned(dn_addr_i) <  C_SCR2_START and dn_addr_i(1 downto 0) = "10" else '0';    
+    scr1_we3 <= dn_wr_i when unsigned(dn_addr_i) >= C_SCR1_START and unsigned(dn_addr_i) <  C_SCR2_START and dn_addr_i(1 downto 0) = "11" else '0';
+    
+    
     scr2_we0 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="00" else '0';
     scr2_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="01" else '0';
     scr2_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="10" else '0';
     scr2_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR2_START and unsigned(post_addr) < C_OBJ_START and post_addr(1 downto 0)="11" else '0';
-    --obj_we0  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='0' else '0';
-    --obj_we1  <= dn_wr_i when unsigned(post_addr) >= C_OBJ_START and unsigned(post_addr) < C_PROM_START and post_addr(0)='1' else '0';
-   
-    obj_we0 <= dn_wr_i
-   when unsigned(dn_addr_i) >= C_OBJ_START and
-        unsigned(dn_addr_i) <  C_PROM_START and
-        dn_addr_i(0) = '0'
-   else '0';
-
-    obj_we1 <= dn_wr_i
-   when unsigned(dn_addr_i) >= C_OBJ_START and
-        unsigned(dn_addr_i) <  C_PROM_START and
-        dn_addr_i(0) = '1'
-   else '0';
+    obj_we0 <= dn_wr_i when unsigned(dn_addr_i) >= C_OBJ_START and unsigned(dn_addr_i) <  C_PROM_START and dn_addr_i(0) = '0' else '0';
+    obj_we1 <= dn_wr_i when unsigned(dn_addr_i) >= C_OBJ_START and unsigned(dn_addr_i) <  C_PROM_START and dn_addr_i(0) = '1' else '0';
    
 
     map2_data <= map2_q1 & map2_q0;
@@ -357,6 +358,42 @@ begin
            src(5) &
            src(0)
         );
+    end process;
+    
+    -- -------------------------------------------------------------------------
+    -- Scroll 1 ROM address reordering
+    -- -------------------------------------------------------------------------
+    -- SCR1 uses the same physical 16x16 graphics layout as the object ROM.
+    -- Each SCR1 BRAM word is 32 bits and therefore contains both 4-pixel
+    -- subgroups for one 8-pixel half of a tile.
+    --
+    -- Physical source word layout:
+    --
+    --     ID | HALF | ROW
+    --
+    -- jtexed_scr1 addresses the graphics as:
+    --
+    --     ID | ROW | HALF
+    --
+    -- dn_addr_i is a byte address. Remove C_SCR1_START and divide by four
+    -- to obtain the 32-bit source word address.
+    --
+    -- Source:       [12:5] ID, [4] HALF, [3:0] ROW
+    -- Destination:  [12:5] ID, [4:1] ROW, [0] HALF
+    -- -------------------------------------------------------------------------
+    process(all)
+       variable src : unsigned(12 downto 0);
+    begin
+       src := resize(
+          (unsigned(dn_addr_i) - C_SCR1_START) srl 2,
+          src'length
+       );
+    
+       dl_scr1_word <= "00" & std_logic_vector(
+          src(12 downto 5) &
+          src(3 downto 0) &
+          src(4)
+       );
     end process;
     
 
@@ -695,7 +732,8 @@ begin
       q_a => scr1_q0,
 
       clock_b => dn_clk_i,
-      address_b => dl_scr1_off(16 downto 2),
+      --address_b => dl_scr1_off(16 downto 2),
+      address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we0,
       q_b => open
@@ -711,7 +749,8 @@ begin
       q_a => scr1_q1,
 
       clock_b => dn_clk_i,
-      address_b => dl_scr1_off(16 downto 2),
+      --address_b => dl_scr1_off(16 downto 2),
+      address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we1,
       q_b => open
@@ -727,7 +766,8 @@ begin
       q_a => scr1_q2,
 
       clock_b => dn_clk_i,
-      address_b => dl_scr1_off(16 downto 2),
+      --address_b => dl_scr1_off(16 downto 2),
+      address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we2,
       q_b => open
@@ -743,7 +783,8 @@ begin
       q_a => scr1_q3,
 
       clock_b => dn_clk_i,
-      address_b => dl_scr1_off(16 downto 2),
+      --address_b => dl_scr1_off(16 downto 2),
+      address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we3,
       q_b => open
