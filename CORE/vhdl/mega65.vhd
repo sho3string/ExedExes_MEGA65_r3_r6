@@ -274,8 +274,8 @@ signal qnice_dn_addr    : std_logic_vector(24 downto 0);
 signal qnice_dn_data    : std_logic_vector(7 downto 0);
 signal qnice_dn_wr      : std_logic;
 
--- 320x256 @ 50 Hz
-constant C_320_288_50 : video_modes_t := (
+-- 320x256 @ ~59.87 Hz
+constant C_320_256_60 : video_modes_t := (
    CLK_KHZ     => 6000,       -- 6 MHz
    CLK_SEL     => "001",
    CEA_CTA_VIC => 0,
@@ -287,12 +287,11 @@ constant C_320_288_50 : video_modes_t := (
    H_BP        => 28,         -- horizontal back porch width in pixels
    H_FP        => 8,          -- horizontal front porch width in pixels
    V_PULSE     => 2,          -- vertical sync pulse width in rows
-   V_BP        => 22,         -- vertical back porch width in rows
+   V_BP        => 2,          -- vertical back porch width in rows
    V_FP        => 1,          -- vertical front porch width in rows
    H_POL       => '1',        -- horizontal sync pulse polarity (1 = positive, 0 = negative)
    V_POL       => '1'         -- vertical sync pulse polarity (1 = positive, 0 = negative)
 );
-
 
 begin
 
@@ -541,7 +540,7 @@ begin
          G_ADDR_WIDTH => 16,
          G_H_LEFT     => 48,
          G_H_RIGHT    => 224+48,    -- ( 320- 24 ) / 2 = 48
-         G_VIDEO_MODE => C_320_288_50
+         G_VIDEO_MODE => C_320_256_60
       )
       
       port map (

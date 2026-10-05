@@ -96,7 +96,6 @@ signal reset       : std_logic;
 -- Cabinet / controls
 signal ee_cab_1p   : std_logic_vector(1 downto 0);
 signal ee_coin     : std_logic_vector(1 downto 0);
-signal service     : std_logic;
 signal joystick1   : std_logic_vector(5 downto 0);
 signal joystick2   : std_logic_vector(5 downto 0);
 
@@ -105,41 +104,30 @@ signal ee_dipsw_a  : std_logic_vector(7 downto 0);
 signal ee_dipsw_b  : std_logic_vector(7 downto 0);
 signal ee_dipsw    : std_logic_vector(31 downto 0);
 
-
--- Debug / layer controls
-signal ee_debug_view: std_logic_vector(7 downto 0);
-
--- Pixel enables
-signal ee_pxl2_cen  : std_logic;
-
 -- Audio
 signal psg0        : std_logic_vector(9 downto 0);
 signal psg1        : std_logic_vector(10 downto 0);
 signal psg2        : std_logic_vector(10 downto 0);
 
 signal audio_mixed : signed(15 downto 0);
-signal audio_peak  : std_logic;
 
 -- Main CPU ROM
-signal main_cs     : std_logic;
+--signal main_cs     : std_logic;
 signal main_addr   : std_logic_vector(16 downto 0);
 signal main_data   : std_logic_vector(7 downto 0);
 signal main_ok     : std_logic;
 
 -- Sound CPU ROM
-signal snd_cs      : std_logic;
 signal snd_addr    : std_logic_vector(14 downto 0);
 signal snd_data    : std_logic_vector(7 downto 0);
 signal snd_ok      : std_logic;
 
 -- MAP 1 ROM
-signal map1_cs     : std_logic;
 signal map1_addr   : std_logic_vector(13 downto 0);
 signal map1_data   : std_logic_vector(7 downto 0);
 signal map1_ok     : std_logic;
 
 -- MAP 2 ROM
-signal map2_cs     : std_logic;
 signal map2_addr   : std_logic_vector(12 downto 0);
 signal map2_data   : std_logic_vector(15 downto 0);
 signal map2_ok     : std_logic;
@@ -210,9 +198,7 @@ signal dl_snd_off  : std_logic_vector(25 downto 0);
 signal dl_map1_off : std_logic_vector(25 downto 0);
 signal dl_map2_off : std_logic_vector(25 downto 0);
 signal dl_char_off : std_logic_vector(25 downto 0);
-signal dl_scr1_off : std_logic_vector(25 downto 0);
 signal dl_scr2_off : std_logic_vector(25 downto 0);
-signal dl_obj_off  : std_logic_vector(25 downto 0);
 
 signal main_we, snd_we, map1_we : std_logic;
 signal map2_we0, map2_we1 : std_logic;
@@ -264,9 +250,8 @@ begin
     dl_map1_off <= std_logic_vector(unsigned(post_addr) - C_MAP1_START);
     dl_map2_off <= std_logic_vector(unsigned(post_addr) - C_MAP2_START);
     dl_char_off <= std_logic_vector(unsigned(post_addr) - C_CHAR_START);
-    dl_scr1_off <= std_logic_vector(unsigned(post_addr) - C_SCR1_START);
     dl_scr2_off <= std_logic_vector(unsigned(post_addr) - C_SCR2_START);
-    dl_obj_off  <= std_logic_vector(unsigned(post_addr) - C_OBJ_START);
+
 
     main_we <= dn_wr_i when unsigned(post_addr) >= C_MAIN_START and unsigned(post_addr) < C_SND_START else '0';
     snd_we  <= dn_wr_i when unsigned(post_addr) >= C_SND_START  and unsigned(post_addr) < C_MAP1_START else '0';
@@ -277,11 +262,7 @@ begin
     char_we0 <= dn_wr_i when unsigned(post_addr) >= C_CHAR_START and unsigned(post_addr) < C_SCR1_START and post_addr(0)='0' else '0';
     char_we1 <= dn_wr_i when unsigned(post_addr) >= C_CHAR_START and unsigned(post_addr) < C_SCR1_START and post_addr(0)='1' else '0';
 
-    --scr1_we0 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="00" else '0';
-    --scr1_we1 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="01" else '0';
-    --scr1_we2 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="10" else '0';
-    --scr1_we3 <= dn_wr_i when unsigned(post_addr) >= C_SCR1_START and unsigned(post_addr) < C_SCR2_START and post_addr(1 downto 0)="11" else '0';
-    
+   
     -- SCR1 byte lanes come directly from the original download byte address.
     -- Address reordering is performed on the 32-bit word address above.
     scr1_we0 <= dn_wr_i when unsigned(dn_addr_i) >= C_SCR1_START and unsigned(dn_addr_i) <  C_SCR2_START and dn_addr_i(1 downto 0) = "00" else '0';
@@ -496,11 +477,11 @@ begin
       -- Debug / layer controls
       gfx_en      => "1111",
       debug_bus   => (others => '0'),
-      debug_view  => ee_debug_view,
+      debug_view  => open,
 
       -- Pixel enables
       pxl_cen     => video_ce_o,
-      pxl2_cen    => ee_pxl2_cen,
+      pxl2_cen    => open,
 
       -- Video
       red         => video_red_o,
@@ -517,25 +498,25 @@ begin
       psg2        => psg2,
 
       -- Main CPU ROM
-      main_cs     => main_cs,
+      main_cs     => open,
       main_addr   => main_addr,
       main_data   => main_data,
       main_ok     => main_ok,
 
       -- Sound CPU ROM
-      snd_cs      => snd_cs,
+      snd_cs      => open,
       snd_addr    => snd_addr,
       snd_data    => snd_data,
       snd_ok      => snd_ok,
 
       -- MAP 1 ROM
-      map1_cs     => map1_cs,
+      map1_cs     => open,
       map1_addr   => map1_addr,
       map1_data   => map1_data,
       map1_ok     => map1_ok,
 
       -- MAP 2 ROM
-      map2_cs     => map2_cs,
+      map2_cs     => open,
       map2_addr   => map2_addr,
       map2_data   => map2_data,
       map2_ok     => map2_ok,
@@ -596,7 +577,7 @@ begin
       gain3 => x"00",
 
       mixed => audio_mixed,
-      peak  => audio_peak
+      peak  => open
    );
    
     audio_left_o  <= audio_mixed;
@@ -733,7 +714,6 @@ begin
       q_a => scr1_q0,
 
       clock_b => dn_clk_i,
-      --address_b => dl_scr1_off(16 downto 2),
       address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we0,
@@ -750,7 +730,6 @@ begin
       q_a => scr1_q1,
 
       clock_b => dn_clk_i,
-      --address_b => dl_scr1_off(16 downto 2),
       address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we1,
@@ -767,7 +746,6 @@ begin
       q_a => scr1_q2,
 
       clock_b => dn_clk_i,
-      --address_b => dl_scr1_off(16 downto 2),
       address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we2,
@@ -784,7 +762,6 @@ begin
       q_a => scr1_q3,
 
       clock_b => dn_clk_i,
-      --address_b => dl_scr1_off(16 downto 2),
       address_b => dl_scr1_word,
       data_b => dn_data_i,
       wren_b => scr1_we3,
