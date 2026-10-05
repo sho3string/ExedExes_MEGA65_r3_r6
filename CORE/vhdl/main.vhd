@@ -570,9 +570,11 @@ begin
       post_addr   => post_addr
    );
    
+   -- Jotego audio path.
+   -- Use the audio mixer
    i_audio_mixer : entity work.jtframe_mixer
    generic map (
-      W0   => 10,
+      W0   => 11,
       W1   => 11,
       W2   => 11,
       W3   => 16,
@@ -596,11 +598,10 @@ begin
       mixed => audio_mixed,
       peak  => audio_peak
    );
-
+   
     audio_left_o  <= audio_mixed;
     audio_right_o <= audio_mixed;
 
-  
 
    -- ----------------------------------------------------------------------
    -- Exed Exes ROM BRAMs. Port A = 48 MHz core read, Port B = QNICE write.
