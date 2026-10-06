@@ -88,7 +88,7 @@ constant SCR_WELCOME : string :=
    "Credits  : Press '5' or '6'\n"        &
    "Start    : Press '1' or '2'\n"        &
    "Controls : Joystick or arrows\n"      &
-   "Fire     : Joy button or 'A'\n"       &
+   "Fire     : Joy | 'Z' and 'X'\n" &
    "\n\n    Press Space to continue.\n"; 
    
 constant HELP_1 : string :=
@@ -266,7 +266,7 @@ constant SEL_CORENAME      : std_logic_vector(15 downto 0) := x"0200";
 
 -- Currently this is only used in the debug console. Use the welcome screen and the
 -- help system to display the name and version of the core to the end user
-constant CORENAME          : string := "Exed Exes";
+constant CORENAME          : string := "Exed Exes v 0.5.0";
 
 --------------------------------------------------------------------------------------------------------------------
 -- "Help" menu / Options menu  (Selectors 0x0300 .. 0x0312): DO NOT TOUCH
@@ -318,7 +318,7 @@ constant OPTM_S_SAVING     : string := "<Saving>";          -- the internal writ
 --             Do use a lower case \n. If you forget one of them or if you use upper case, you will run into undefined behavior.
 --          2. Start each line that contains an actual menu item (multi- or single-select) with a Space character,
 --             otherwise you will experience visual glitches.
-constant OPTM_SIZE         : natural := 58;  -- amount of items including empty lines:
+constant OPTM_SIZE         : natural := 59;  -- amount of items including empty lines:
                                              -- needs to be equal to the number of lines in OPTM_ITEMS and amount of items in OPTM_GROUPS
                                              -- IMPORTANT: If SAVE_SETTINGS is true and OPTM_SIZE changes: Make sure to re-generate and
                                              -- and re-distribute the config file. You can make a new one using M2M/tools/make_config.sh
@@ -326,13 +326,14 @@ constant OPTM_SIZE         : natural := 58;  -- amount of items including empty 
 -- Net size of the Options menu on the screen in characters (excluding the frame, which is hardcoded to two characters)
 -- Without submenus: Use OPTM_SIZE as height, otherwise count how large the actually visible main menu is.
 constant OPTM_DX           : natural := 23;
-constant OPTM_DY           : natural := 23;
+constant OPTM_DY           : natural := 21;
 
 constant OPTM_ITEMS : string :=
    " Exed Exes\n"           &
    "\n"                     &
    " Flip joystick ports\n" &
-   " Fire 2: POTX|POTY\n"   &
+   " P1 Fire 2 POTX|POTY\n" &
+   " P2 Fire 2 POTX|POTY\n" &
    " P1 fire 2 polarity\n"  &
    " P2 fire 2 polarity\n"  &
    "\n"                     &
@@ -430,9 +431,10 @@ constant OPTM_G_VGA_MODES      : integer := 30;
 constant OPTM_G_FLIPJ          : integer := 31;
 constant OPTM_G_SOFTW          : integer := 32;
 -- Player controls
-constant OPTM_G_SECOND_FIRE    : integer := 33;
-constant OPTM_G_POTPOL_1       : integer := 34;
-constant OPTM_G_POTPOL_2       : integer := 35;
+constant OPTM_G_SECOND_FIRE_1  : integer := 33;
+constant OPTM_G_SECOND_FIRE_2  : integer := 34;
+constant OPTM_G_POTPOL_1       : integer := 35;
+constant OPTM_G_POTPOL_2       : integer := 36;
 
 -- !!! DO NOT TOUCH !!!
 type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC- 1;
@@ -445,9 +447,10 @@ type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC-
                                              OPTM_G_LINE,
                                              OPTM_G_FLIPJ + OPTM_G_SINGLESEL + OPTM_G_START,
                                              -- Second joystick button configuration
-                                             OPTM_G_SECOND_FIRE + OPTM_G_SINGLESEL + OPTM_G_STDSEL,
-                                             OPTM_G_POTPOL_1    + OPTM_G_SINGLESEL,
-                                             OPTM_G_POTPOL_2    + OPTM_G_SINGLESEL,
+                                             OPTM_G_SECOND_FIRE_1 + OPTM_G_SINGLESEL,
+                                             OPTM_G_SECOND_FIRE_2 + OPTM_G_SINGLESEL,
+                                             OPTM_G_POTPOL_1      + OPTM_G_SINGLESEL,
+                                             OPTM_G_POTPOL_2      + OPTM_G_SINGLESEL,
                                              OPTM_G_LINE,
                                              OPTM_G_TEXT + OPTM_G_HEADLINE,
                                              OPTM_G_LINE,                                               -- Line
@@ -482,7 +485,7 @@ type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC-
                                              OPTM_G_SUBMENU,                                                                                       
                                              OPTM_G_GAP_DSWA0  + OPTM_G_SINGLESEL,                  
                                              OPTM_G_GAP_DSWA1  + OPTM_G_SINGLESEL,                 
-                                             OPTM_G_GAP_DSWA2  + OPTM_G_SINGLESEL,                   
+                                             OPTM_G_GAP_DSWA2  + OPTM_G_SINGLESEL + OPTM_G_STDSEL,     -- Japanese/English                 
                                              OPTM_G_GAP_DSWA3  + OPTM_G_SINGLESEL,                    
                                              OPTM_G_GAP_DSWA4  + OPTM_G_SINGLESEL,                 
                                              OPTM_G_GAP_DSWA5  + OPTM_G_SINGLESEL,                

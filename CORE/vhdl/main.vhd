@@ -163,7 +163,8 @@ signal shoot2_button1_n : std_logic := '1';
 signal shoot2_button2_n : std_logic := '1';
 signal pot1_val    : std_logic_vector(7 downto 0);
 signal pot2_val    : std_logic_vector(7 downto 0);
-signal potxy_sw    : std_logic;
+signal potxy1_sw   : std_logic;
+signal potxy2_sw   : std_logic;
 signal pot_pol1_sw : std_logic;
 signal pot_pol2_sw : std_logic;
 
@@ -437,23 +438,31 @@ begin
     ee_coin(0) <= keyboard_n(m65_6);   -- Coin 1
     ee_coin(1) <= keyboard_n(m65_5);   -- Coin 2
     
-    potxy_sw    <= osm_control_i(C_MENU_SECOND_FIRE); -- 0 = POTX, 1 = POTY
-    pot_pol1_sw <= osm_control_i(C_MENU_POTPOL_1);      -- P1: 1 = active-low, 0 = active-high
-    pot_pol2_sw <= osm_control_i(C_MENU_POTPOL_2);      -- P2: 1 = active-low, 0 = active-high
+    potxy1_sw   <= osm_control_i(C_MENU_SECOND_FIRE_1); -- Joy 1: 0 = POTX, 1 = POTY
+    potxy2_sw   <= osm_control_i(C_MENU_SECOND_FIRE_2); -- Joy 2: 0 = POTX, 1 = POTY
+    pot_pol1_sw <= osm_control_i(C_MENU_POTPOL_1);      -- Joy 1 polarity
+    pot_pol2_sw <= osm_control_i(C_MENU_POTPOL_2);      -- Joy 2 polarity
     
     second_button_proc : process(all)
     begin
     
+       -------------------------------------------------------------------------
+       -- Select POTX/POTY independently for both joystick ports
        ------------------------------------------------------------------------
-       -- Select POTX/POTY for both joystick ports
-       ------------------------------------------------------------------------
-       if potxy_sw = '0' then
-          pot1_val <= pot1_x_i;
-          pot2_val <= pot2_x_i;
-       else
-          pot1_val <= pot1_y_i;
-          pot2_val <= pot2_y_i;
-       end if;
+        
+        -- Player 1
+        if potxy1_sw = '0' then
+           pot1_val <= pot1_x_i;
+        else
+           pot1_val <= pot1_y_i;
+        end if;
+        
+        -- Player 2
+        if potxy2_sw = '0' then
+           pot2_val <= pot2_x_i;
+        else
+           pot2_val <= pot2_y_i;
+        end if;
     
        ------------------------------------------------------------------------
        -- Player 1 second fire
@@ -637,7 +646,7 @@ begin
       ch2   => signed(psg2),
       ch3   => to_signed(0, 16),
 
-      gain0 => x"07",
+      gain0 => x"10",
       gain1 => x"10",
       gain2 => x"10",
       gain3 => x"00",
