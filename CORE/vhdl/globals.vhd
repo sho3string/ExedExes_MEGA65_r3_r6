@@ -17,47 +17,47 @@ use work.video_modes_pkg.all;
 
 package globals is
 
-
----------------------------------------------------------------------------------------------
--- qnice_clk
----------------------------------------------------------------------------------------------
-
-
 constant C_FLIP_JOYS          : natural := 2;
-constant C_MENU_ROT90         : natural := 6;
-constant C_MENU_CRT_EMULATION : natural := 7;
-constant C_MENU_HDMI_16_9_50  : natural := 11;
-constant C_MENU_HDMI_16_9_60  : natural := 12;
-constant C_MENU_HDMI_4_3_50   : natural := 13;
-constant C_MENU_HDMI_5_4_50   : natural := 14;
-constant C_MENU_HDMI_640_60   : natural := 15;
-constant C_MENU_HDMI_720_5994 : natural := 16;
-constant C_MENU_SVGA_800_60   : natural := 17;
 
+-- Second joystick button
+constant C_MENU_SECOND_FIRE   : natural := 3;
+constant C_MENU_POTPOL_1      : natural := 4;
+constant C_MENU_POTPOL_2      : natural := 5;
 
-constant C_MENU_VGA_STD       : natural := 23;
-constant C_MENU_VGA_15KHZHSVS : natural := 27;
-constant C_MENU_VGA_15KHZCS   : natural := 28;
+constant C_MENU_ROT90         : natural := 9;
+constant C_MENU_CRT_EMULATION : natural := 10;
+
+constant C_MENU_HDMI_16_9_50  : natural := 14;
+constant C_MENU_HDMI_16_9_60  : natural := 15;
+constant C_MENU_HDMI_4_3_50   : natural := 16;
+constant C_MENU_HDMI_5_4_50   : natural := 17;
+constant C_MENU_HDMI_640_60   : natural := 18;
+constant C_MENU_HDMI_720_5994 : natural := 19;
+constant C_MENU_SVGA_800_60   : natural := 20;
+
+constant C_MENU_VGA_STD       : natural := 26;
+constant C_MENU_VGA_15KHZHSVS : natural := 30;
+constant C_MENU_VGA_15KHZCS   : natural := 31;
 
 -- Exed Exes DIP SW1
-constant C_MENU_SW1_0         : natural := 35;
-constant C_MENU_SW1_1         : natural := 36;
-constant C_MENU_SW1_2         : natural := 37;
-constant C_MENU_SW1_3         : natural := 38;
-constant C_MENU_SW1_4         : natural := 39;
-constant C_MENU_SW1_5         : natural := 40;
-constant C_MENU_SW1_6         : natural := 41;
-constant C_MENU_SW1_7         : natural := 42;
+constant C_MENU_SW1_0         : natural := 38;
+constant C_MENU_SW1_1         : natural := 39;
+constant C_MENU_SW1_2         : natural := 40;
+constant C_MENU_SW1_3         : natural := 41;
+constant C_MENU_SW1_4         : natural := 42;
+constant C_MENU_SW1_5         : natural := 43;
+constant C_MENU_SW1_6         : natural := 44;
+constant C_MENU_SW1_7         : natural := 45;
 
 -- Exed Exes DIP SW2
-constant C_MENU_SW2_0         : natural := 43;
-constant C_MENU_SW2_1         : natural := 44;
-constant C_MENU_SW2_2         : natural := 45;
-constant C_MENU_SW2_3         : natural := 46;
-constant C_MENU_SW2_4         : natural := 47;
-constant C_MENU_SW2_5         : natural := 48;
-constant C_MENU_SW2_6         : natural := 49;
-constant C_MENU_SW2_7         : natural := 50;
+constant C_MENU_SW2_0         : natural := 46;
+constant C_MENU_SW2_1         : natural := 47;
+constant C_MENU_SW2_2         : natural := 48;
+constant C_MENU_SW2_3         : natural := 49;
+constant C_MENU_SW2_4         : natural := 50;
+constant C_MENU_SW2_5         : natural := 51;
+constant C_MENU_SW2_6         : natural := 52;
+constant C_MENU_SW2_7         : natural := 53;
 
 ----------------------------------------------------------------------------------------------------------
 -- QNICE Firmware

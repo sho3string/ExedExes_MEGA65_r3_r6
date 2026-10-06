@@ -318,7 +318,7 @@ constant OPTM_S_SAVING     : string := "<Saving>";          -- the internal writ
 --             Do use a lower case \n. If you forget one of them or if you use upper case, you will run into undefined behavior.
 --          2. Start each line that contains an actual menu item (multi- or single-select) with a Space character,
 --             otherwise you will experience visual glitches.
-constant OPTM_SIZE         : natural := 55;  -- amount of items including empty lines:
+constant OPTM_SIZE         : natural := 58;  -- amount of items including empty lines:
                                              -- needs to be equal to the number of lines in OPTM_ITEMS and amount of items in OPTM_GROUPS
                                              -- IMPORTANT: If SAVE_SETTINGS is true and OPTM_SIZE changes: Make sure to re-generate and
                                              -- and re-distribute the config file. You can make a new one using M2M/tools/make_config.sh
@@ -328,10 +328,13 @@ constant OPTM_SIZE         : natural := 55;  -- amount of items including empty 
 constant OPTM_DX           : natural := 23;
 constant OPTM_DY           : natural := 23;
 
-constant OPTM_ITEMS        : string :=
+constant OPTM_ITEMS : string :=
    " Exed Exes\n"           &
    "\n"                     &
    " Flip joystick ports\n" &
+   " Fire 2: POTX|POTY\n"   &
+   " P1 fire 2 polarity\n"  &
+   " P2 fire 2 polarity\n"  &
    "\n"                     &
    " Display Settings\n"    &
    "\n"                     &
@@ -422,10 +425,14 @@ constant OPTM_G_GAP_DSWC4      : integer := 26;
 constant OPTM_G_GAP_DSWC5      : integer := 27;
 constant OPTM_G_GAP_DSWC6      : integer := 28;
 constant OPTM_G_GAP_DSWC7      : integer := 29;
-
+-- Misc
 constant OPTM_G_VGA_MODES      : integer := 30;
 constant OPTM_G_FLIPJ          : integer := 31;
 constant OPTM_G_SOFTW          : integer := 32;
+-- Player controls
+constant OPTM_G_SECOND_FIRE    : integer := 33;
+constant OPTM_G_POTPOL_1       : integer := 34;
+constant OPTM_G_POTPOL_2       : integer := 35;
 
 -- !!! DO NOT TOUCH !!!
 type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC- 1;
@@ -433,11 +440,16 @@ type OPTM_GTYPE is array (0 to OPTM_SIZE - 1) of integer range 0 to 2**OPTM_GTC-
 -- define your menu groups: which menu items are belonging together to form a group?
 -- where are separator lines? which items should be selected by default?
 -- make sure that you have exactly the same amount of entries here than in OPTM_ITEMS and defined by OPTM_SIZE
-constant OPTM_GROUPS       : OPTM_GTYPE := ( OPTM_G_TEXT + OPTM_G_HEADLINE,                             -- Headline "Demo Headline A"
-                                             OPTM_G_LINE,                                               -- Line
-                                             OPTM_G_FLIPJ + OPTM_G_SINGLESEL + OPTM_G_START ,           -- Flip joys On/Off toggle ("Single Select")
-                                             OPTM_G_LINE,                                               -- Line
-                                             OPTM_G_TEXT + OPTM_G_HEADLINE,                             -- Headline "HDMI Mode""
+                                constant OPTM_GROUPS       : OPTM_GTYPE := ( 
+                                             OPTM_G_TEXT + OPTM_G_HEADLINE,
+                                             OPTM_G_LINE,
+                                             OPTM_G_FLIPJ + OPTM_G_SINGLESEL + OPTM_G_START,
+                                             -- Second joystick button configuration
+                                             OPTM_G_SECOND_FIRE + OPTM_G_SINGLESEL + OPTM_G_STDSEL,
+                                             OPTM_G_POTPOL_1    + OPTM_G_SINGLESEL,
+                                             OPTM_G_POTPOL_2    + OPTM_G_SINGLESEL,
+                                             OPTM_G_LINE,
+                                             OPTM_G_TEXT + OPTM_G_HEADLINE,
                                              OPTM_G_LINE,                                               -- Line
                                              OPTM_G_ROT90 + OPTM_G_SINGLESEL + OPTM_G_STDSEL,           -- Rotate On/Off toggle ("Single Select")
                                              OPTM_G_CRT   + OPTM_G_SINGLESEL + OPTM_G_STDSEL,           -- CRT emulation On/Off toggle ("Single Select")

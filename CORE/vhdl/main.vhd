@@ -437,9 +437,9 @@ begin
     ee_coin(0) <= keyboard_n(m65_6);   -- Coin 1
     ee_coin(1) <= keyboard_n(m65_5);   -- Coin 2
     
-    --potxy_sw    <= osm_control_i(C_MENU_SECOND_FIRE); -- 0 = POTX, 1 = POTY
-    --pot_pol1_sw <= osm_control_i(C_MENU_POTPOL_1);      -- P1: 1 = active-low, 0 = active-high
-    --pot_pol2_sw <= osm_control_i(C_MENU_POTPOL_2);      -- P2: 1 = active-low, 0 = active-high
+    potxy_sw    <= osm_control_i(C_MENU_SECOND_FIRE); -- 0 = POTX, 1 = POTY
+    pot_pol1_sw <= osm_control_i(C_MENU_POTPOL_1);      -- P1: 1 = active-low, 0 = active-high
+    pot_pol2_sw <= osm_control_i(C_MENU_POTPOL_2);      -- P2: 1 = active-low, 0 = active-high
     
     second_button_proc : process(all)
     begin
